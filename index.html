@@ -65,7 +65,19 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .pm-row::-webkit-scrollbar{display:none;}
 .pm-chip{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:var(--surface);border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--text-dim);transition:background .15s,border-color .15s,color .15s;}
 .pm-chip.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.pm-chip.more{border-style:dashed;}
 .pm-label{font-size:13px;}
+
+/* pay-method bottom sheet: grouped 3-column grid, mirrors the currency sheet */
+.pm-group-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);margin:16px 0 8px;}
+.pm-group-label:first-of-type{margin-top:2px;}
+.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pm-item{background:var(--surface-2);border:1.5px solid var(--border);border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:60px;justify-content:center;}
+.pm-item.selected{border-color:var(--gold);background:var(--gold-dim);}
+.pm-item.selected .pm-label{color:var(--gold);}
+.pm-item.placeholder{opacity:.55;}
+.pm-icon{font-size:16px;}
+.pm-item .pm-label{font-size:10.5px;color:var(--text-dim);text-align:center;line-height:1.25;}
 
 .note-wrap{padding:0 20px 10px;}
 .note-input{width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border);padding:9px 2px;outline:none;font-size:15px;}
@@ -125,7 +137,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .undo-btn{color:var(--gold);font-weight:700;font-size:13px;}
 
 .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;z-index:60;}
-.sheet{background:var(--surface);width:100%;border-radius:20px 20px 0 0;padding:10px 20px calc(env(safe-area-inset-bottom) + 20px);max-height:60vh;overflow-y:auto;}
+.sheet{background:var(--surface);width:100%;border-radius:20px 20px 0 0;padding:10px 20px calc(env(safe-area-inset-bottom) + 20px);max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:4px auto 14px;}
 .sheet-title{font-family:'Space Grotesk';font-weight:700;font-size:16px;margin-bottom:10px;}
 .sheet-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
@@ -159,12 +171,41 @@ var INCOME_CATS = [
   {id:'investment',emoji:'📈',label:'Investing'},
   {id:'other_income',emoji:'💵',label:'Other'}
 ];
-var PAY_METHODS = [
-  {id:'cash',emoji:'💵',label:'Cash'},
-  {id:'card',emoji:'💳',label:'Card'},
-  {id:'bank',emoji:'🏦',label:'Bank'},
-  {id:'ewallet',emoji:'📱',label:'E-wallet'}
+// Grouped by real instrument (replaced the old generic Cash/Card/Bank/E-wallet
+// buckets). `placeholder:true` = account confirmed but details (last 4, etc.)
+// not supplied yet — still selectable, just visually muted.
+var PAY_METHOD_GROUPS = [
+  {label:'Credit Card', icon:'💳', items:[
+    {id:'dbs_alt',  label:'DBS Alt'},
+    {id:'citi_pm',  label:'Citi PM'},
+    {id:'pbb_visa', label:'PBB Visa'},
+    {id:'uob_mc',   label:'UOB MC'},
+    {id:'mbb_amex', label:'MBB Amex'},
+    {id:'hlb_wise', label:'HLB Wise', placeholder:true},
+  ]},
+  {label:'Bank', icon:'🏦', items:[
+    {id:'cimb_my',   label:'CIMB MY'},
+    {id:'hlb_pay',   label:'HLB Pay'},
+    {id:'rhb_ca',    label:'RHB C/A'},
+    {id:'mbb_sav',   label:'MBB Sav'},
+    {id:'hlb_ember', label:'HLB Ember'},
+    {id:'dbs_sg',    label:'DBS SG'},
+    {id:'cimb_sg',   label:'CIMB SG'},
+  ]},
+  {label:'E-wallet', icon:'📱', items:[
+    {id:'tng',     label:'TnG'},
+    {id:'grabpay', label:'GrabPay'},
+  ]},
 ];
+// Flat lookup: id -> {id,label,emoji,group} — `emoji` (not `icon`) to match
+// the shape category objects already use, since tx.payMethod is rendered the
+// same way tx.category is (txRowHTML, the .md export).
+var PAY_METHODS_BY_ID = {};
+PAY_METHOD_GROUPS.forEach(function(g){
+  g.items.forEach(function(it){
+    PAY_METHODS_BY_ID[it.id] = {id:it.id, label:it.label, emoji:g.icon, group:g.label, placeholder:!!it.placeholder};
+  });
+});
 
 var plusSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 var listSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
@@ -173,7 +214,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 
 var state = {
   tab:'add', type:'expense', amount:'0', currency:'MYR', category:null, payMethod:null, note:'',
-  transactions:[], loading:true, currencySheetOpen:false
+  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false
 };
 var pendingDelete = null;
 var undoTimer = null;
@@ -213,7 +254,7 @@ function showToast(msg){
   toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2000);
 }
 
-function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; render(); }
+function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; render(); }
 
 function setType(type){
   if(state.type === type) return;
@@ -256,7 +297,25 @@ function updateSaveButtonState(){
 }
 
 function selectCategory(id){ state.category = id; render(); }
-function selectPayMethod(id){ state.payMethod = id; render(); }
+function selectPayMethod(id){
+  state.payMethod = PAY_METHODS_BY_ID[id] || null;
+  state.pmSheetOpen = false;
+  render();
+}
+function openPmSheet(){ state.pmSheetOpen = true; render(); }
+function closePmSheet(){ state.pmSheetOpen = false; render(); }
+
+// Most-recently-used distinct pay methods, newest first (transactions are
+// stored newest-first already). Caps at 3 so the inline row stays compact;
+// anything else is one tap away via the "More" chip / full sheet.
+function mruPayMethods(){
+  var seen = {}, out = [];
+  for(var i=0;i<state.transactions.length && out.length<3;i++){
+    var pm = state.transactions[i].payMethod;
+    if(pm && !seen[pm.id]){ seen[pm.id]=true; out.push(pm); }
+  }
+  return out;
+}
 
 function openCurrencySheet(){ state.currencySheetOpen = true; render(); }
 function closeCurrencySheet(){ state.currencySheetOpen = false; render(); }
@@ -267,11 +326,10 @@ async function saveTransaction(){
   if(!(amt > 0) || !state.category) return;
   var catList = state.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
   var cat = catList.find(function(c){ return c.id === state.category; });
-  var pm = PAY_METHODS.find(function(p){ return p.id === state.payMethod; });
   var tx = {
     id: 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
     type: state.type, amount: amt, currency: state.currency,
-    category: cat, payMethod: pm, note: state.note.trim(), date: new Date().toISOString()
+    category: cat, payMethod: state.payMethod, note: state.note.trim(), date: new Date().toISOString()
   };
   state.transactions.unshift(tx);
   await persist();
@@ -409,11 +467,37 @@ function categoryRowHTML(){
   }).join('') + '</div>';
 }
 
+// Inline row = the 3 most-recently-used methods (chosen 2026-08-20, Option A)
+// plus the current selection if it isn't already one of those, plus a "More"
+// chip that opens the full grouped sheet for the other 12+.
 function payMethodRowHTML(){
-  return '<div class="pm-row">' + PAY_METHODS.map(function(p){
-    return '<button class="pm-chip ' + (state.payMethod === p.id ? 'selected' : '') + '" onclick="selectPayMethod(\'' + p.id + '\')">' +
+  var mru = mruPayMethods();
+  var cur = state.payMethod;
+  if(cur && !mru.some(function(p){ return p.id === cur.id; })) mru = [cur].concat(mru);
+  var chips = mru.map(function(p){
+    var sel = cur && cur.id === p.id ? ' selected' : '';
+    return '<button class="pm-chip' + sel + '" onclick="selectPayMethod(\'' + p.id + '\')">' +
       '<span>' + p.emoji + '</span><span class="pm-label">' + p.label + '</span></button>';
-  }).join('') + '</div>';
+  }).join('');
+  chips += '<button class="pm-chip more" onclick="openPmSheet()"><span>&#8943;</span><span class="pm-label">More</span></button>';
+  return '<div class="pm-row">' + chips + '</div>';
+}
+
+function pmSheetHTML(){
+  var body = PAY_METHOD_GROUPS.map(function(g){
+    return '<div class="pm-group-label">' + escapeHtml(g.label) + '</div><div class="pm-grid">' +
+      g.items.map(function(it){
+        var sel = state.payMethod && state.payMethod.id === it.id ? ' selected' : '';
+        var ph = it.placeholder ? ' placeholder' : '';
+        return '<button class="pm-item' + sel + ph + '" onclick="selectPayMethod(\'' + it.id + '\')">' +
+          '<span class="pm-icon">' + g.icon + '</span><span class="pm-label">' + escapeHtml(it.label) + '</span></button>';
+      }).join('') + '</div>';
+  }).join('');
+  return '<div class="sheet-backdrop" onclick="closePmSheet()">' +
+    '<div class="sheet" onclick="event.stopPropagation()">' +
+      '<div class="sheet-handle"></div><div class="sheet-title">Pay method</div>' +
+      body +
+    '</div></div>';
 }
 
 function keypadHTML(){
@@ -519,7 +603,8 @@ function render(){
     '<div class="screen-container">' + (state.tab==='add' ? addScreenHTML() : historyScreenHTML()) + '</div>' +
     tabbarHTML() +
     '<div id="toast" class="toast"></div>' +
-    (state.currencySheetOpen ? currencySheetHTML() : '');
+    (state.currencySheetOpen ? currencySheetHTML() : '') +
+    (state.pmSheetOpen ? pmSheetHTML() : '');
   updateSaveButtonState();
 }
 
