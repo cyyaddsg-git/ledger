@@ -36,12 +36,20 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .add-screen{display:flex;flex-direction:column;flex:1;min-height:100%;}
 .history-screen{display:flex;flex-direction:column;}
 
-.app-header{padding:calc(env(safe-area-inset-top) + 16px) 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.app-header{padding:calc(env(safe-area-inset-top) + 16px) 20px 6px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
 .brand{font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-0.02em;}
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
 .currency-pill{background:var(--surface-2);border:1px solid var(--border);font-family:'JetBrains Mono';font-size:13px;padding:7px 12px;border-radius:20px;}
-.export-btn{background:var(--surface-2);border:1px solid var(--border);color:var(--gold);font-weight:600;font-size:13px;padding:7px 14px;border-radius:20px;}
+.export-btn{background:var(--surface-2);border:1px solid var(--border);color:var(--gold);font-weight:600;font-size:13px;padding:7px 14px;border-radius:20px;white-space:nowrap;}
 .export-btn:active{background:var(--gold-dim);}
+.export-btn.import-btn{color:var(--text-dim);}
+.info-btn{width:30px;height:30px;flex:0 0 auto;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);font-size:15px;display:flex;align-items:center;justify-content:center;}
+.info-btn:active{background:var(--gold-dim);color:var(--gold);}
 .tx-pm{font-size:12px;}
+
+.date-row{padding:0 20px 12px;}
+.date-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:10px 14px;font-size:14px;font-weight:500;color:var(--text);font-family:'Inter',sans-serif;-webkit-appearance:auto;}
+.date-input::-webkit-date-and-time-value{text-align:left;}
 
 .segmented{display:flex;margin:6px 20px 0;background:var(--surface);border-radius:14px;padding:4px;}
 .segmented button{flex:1;font-family:'Inter';font-weight:600;font-size:14px;padding:9px 0;border-radius:10px;color:var(--text-dim);transition:background .15s,color .15s;}
@@ -78,6 +86,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .pm-item.placeholder{opacity:.55;}
 .pm-icon{font-size:16px;}
 .pm-item .pm-label{font-size:10.5px;color:var(--text-dim);text-align:center;line-height:1.25;}
+
+.info-row{padding:11px 0;border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.info-row .k{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.info-row .v{font-size:13px;color:var(--text-dim);line-height:1.55;}
+.info-row .v b{color:var(--gold);font-weight:600;}
 
 .note-wrap{padding:0 20px 10px;}
 .note-input{width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border);padding:9px 2px;outline:none;font-size:15px;}
@@ -212,9 +226,17 @@ var listSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="8
 var backspaceSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>';
 var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
 
+function todayStr(){
+  // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
+  // toISOString() (always UTC) reads back today's LOCAL date.
+  var d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+
 var state = {
   tab:'add', type:'expense', amount:'0', currency:'MYR', category:null, payMethod:null, note:'',
-  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false
+  date: todayStr(),
+  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false, infoSheetOpen:false
 };
 var pendingDelete = null;
 var undoTimer = null;
@@ -245,6 +267,58 @@ async function persist(){
   }catch(e){ showToast('Could not save'); }
 }
 
+// --- Import: restore from a previously-exported ledger_YYYY-MM.md (or a
+// raw .json with the same {transactions:[...]} shape). This is the recovery
+// half of Export — the only real defense against a wiped/reinstalled icon.
+
+function extractTransactionsFromText(text){
+  var m = text.match(/```json\s*([\s\S]*?)```/);
+  var raw = m ? m[1] : text;
+  var data = JSON.parse(raw);
+  var list = Array.isArray(data) ? data : data.transactions;
+  if(!Array.isArray(list)) throw new Error('no transactions[] found');
+  return list;
+}
+
+function mergeTransactions(list){
+  var seen = {};
+  state.transactions.forEach(function(t){ if(t.id) seen[t.id] = true; });
+  var added = 0, skipped = 0;
+  list.forEach(function(t){
+    if(!t || !t.id || seen[t.id]){ skipped++; return; }
+    seen[t.id] = true;
+    state.transactions.push(t);
+    added++;
+  });
+  sortTransactions();
+  return {added: added, skipped: skipped};
+}
+
+function triggerImport(){
+  var input = document.getElementById('importFile');
+  if(input) input.click();
+}
+
+function handleImportFile(ev){
+  var file = ev.target.files && ev.target.files[0];
+  ev.target.value = ''; // reset so re-picking the same file later still fires onchange
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = async function(){
+    try{
+      var list = extractTransactionsFromText(String(reader.result));
+      var res = mergeTransactions(list);
+      await persist();
+      render();
+      showToast(res.added + ' imported' + (res.skipped ? ' &middot; ' + res.skipped + ' already had' : ''));
+    }catch(e){
+      showToast('Import failed — not a Ledger export file');
+    }
+  };
+  reader.onerror = function(){ showToast('Import failed — could not read that file'); };
+  reader.readAsText(file);
+}
+
 function showToast(msg){
   var el = document.getElementById('toast');
   if(!el) return;
@@ -254,7 +328,7 @@ function showToast(msg){
   toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2000);
 }
 
-function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; render(); }
+function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; render(); }
 
 function setType(type){
   if(state.type === type) return;
@@ -305,6 +379,9 @@ function selectPayMethod(id){
 function openPmSheet(){ state.pmSheetOpen = true; render(); }
 function closePmSheet(){ state.pmSheetOpen = false; render(); }
 
+function openInfoSheet(){ state.infoSheetOpen = true; render(); }
+function closeInfoSheet(){ state.infoSheetOpen = false; render(); }
+
 // Most-recently-used distinct pay methods, newest first (transactions are
 // stored newest-first already). Caps at 3 so the inline row stays compact;
 // anything else is one tap away via the "More" chip / full sheet.
@@ -321,6 +398,23 @@ function openCurrencySheet(){ state.currencySheetOpen = true; render(); }
 function closeCurrencySheet(){ state.currencySheetOpen = false; render(); }
 function selectCurrency(code){ state.currency = code; state.currencySheetOpen = false; persist(); render(); }
 
+// Selected calendar date (state.date, for backdating) + the real current
+// time-of-day, as a local Date -> ISO string. Keeps history sorting sane —
+// backdated entries land on the right day, not "just now" at the top.
+function combinedDateISO(){
+  var now = new Date();
+  var parts = state.date.split('-').map(Number);
+  var d = new Date(parts[0], parts[1]-1, parts[2], now.getHours(), now.getMinutes(), now.getSeconds());
+  return d.toISOString();
+}
+
+// Transactions must stay sorted newest-first: mruPayMethods() and the
+// History grouping both assume it, and backdating breaks plain unshift/push
+// ordering.
+function sortTransactions(){
+  state.transactions.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+}
+
 async function saveTransaction(){
   var amt = parseFloat(state.amount);
   if(!(amt > 0) || !state.category) return;
@@ -329,11 +423,12 @@ async function saveTransaction(){
   var tx = {
     id: 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
     type: state.type, amount: amt, currency: state.currency,
-    category: cat, payMethod: state.payMethod, note: state.note.trim(), date: new Date().toISOString()
+    category: cat, payMethod: state.payMethod, note: state.note.trim(), date: combinedDateISO()
   };
-  state.transactions.unshift(tx);
+  state.transactions.push(tx);
+  sortTransactions();
   await persist();
-  state.amount = '0'; state.note = ''; state.category = null; state.payMethod = null;
+  state.amount = '0'; state.note = ''; state.category = null; state.payMethod = null; state.date = todayStr();
   render();
   showToast('Saved');
 }
@@ -508,11 +603,24 @@ function keypadHTML(){
   }).join('') + '</div>';
 }
 
+// Shared across both screens' headers: the (i) info button, and the hidden
+// file input Import uses (only one instance exists at a time — render()
+// replaces #root's whole innerHTML each call).
+function infoButtonHTML(){
+  return '<button class="info-btn" onclick="openInfoSheet()" aria-label="Where your data lives">&#9432;</button>';
+}
+function importInputHTML(){
+  return '<input type="file" id="importFile" accept=".md,.markdown,.json,text/markdown,text/plain,application/json" style="display:none" onchange="handleImportFile(event)">';
+}
+
 function addScreenHTML(){
   var typeLabel = state.type === 'expense' ? 'Expense' : 'Income';
   return '<div class="add-screen">' +
+    importInputHTML() +
     '<div class="app-header"><div class="brand">Ledger</div>' +
-    '<button class="currency-pill" onclick="openCurrencySheet()">' + state.currency + ' ▾</button></div>' +
+    '<div class="header-actions">' + infoButtonHTML() +
+    '<button class="currency-pill" onclick="openCurrencySheet()">' + state.currency + ' ▾</button></div></div>' +
+    '<div class="date-row"><input type="date" class="date-input" value="' + state.date + '" max="' + todayStr() + '" onchange="state.date=this.value||todayStr();"></div>' +
     '<div class="segmented">' +
       '<button class="' + (state.type==='expense' ? 'active expense' : '') + '" onclick="setType(\'expense\')">Expense</button>' +
       '<button class="' + (state.type==='income' ? 'active income' : '') + '" onclick="setType(\'income\')">Income</button>' +
@@ -547,10 +655,13 @@ function txRowHTML(t){
 function historyScreenHTML(){
   if(state.transactions.length === 0){
     return '<div class="history-screen" style="flex:1;display:flex;flex-direction:column;">' +
-      '<div class="app-header"><div class="brand">Ledger</div></div>' +
+      importInputHTML() +
+      '<div class="app-header"><div class="brand">Ledger</div>' +
+      '<div class="header-actions">' + infoButtonHTML() +
+      '<button class="export-btn import-btn" onclick="triggerImport()">Import</button></div></div>' +
       '<div class="empty-state"><div class="empty-emoji">🪙</div>' +
       '<div class="empty-title">No transactions yet</div>' +
-      '<div class="empty-sub">Log your first one from the Add tab.</div>' +
+      '<div class="empty-sub">Log your first one from the Add tab, or Import a previous export.</div>' +
       '<button class="empty-cta" onclick="switchTab(\'add\')">Add a transaction</button></div></div>';
   }
   var totals = currencyTotals();
@@ -567,8 +678,11 @@ function historyScreenHTML(){
     return '<div class="date-label">' + g.label + '</div>' + g.items.map(txRowHTML).join('');
   }).join('');
   return '<div class="history-screen">' +
+    importInputHTML() +
     '<div class="app-header"><div class="brand">Ledger</div>' +
-    '<button class="export-btn" onclick="exportMonth()">Export</button></div>' +
+    '<div class="header-actions">' + infoButtonHTML() +
+    '<button class="export-btn import-btn" onclick="triggerImport()">Import</button>' +
+    '<button class="export-btn" onclick="exportMonth()">Export</button></div></div>' +
     '<div class="balance-row">' + balanceHTML + '</div>' +
     '<div class="tx-list">' + listHTML + '</div>' +
   '</div>';
@@ -593,6 +707,22 @@ function currencySheetHTML(){
     '</div></div>';
 }
 
+function infoSheetHTML(){
+  var rows = [
+    ['Where it lives', "<code>localStorage</code> &mdash; a storage bucket tied to THIS Home Screen icon specifically. Not cache, not shared with a Safari tab, doesn't sync anywhere until you tap Export."],
+    ['What deletes it', "Deleting this Home Screen icon and re-adding it &middot; Settings &rarr; Safari &rarr; Clear History and Website Data &middot; Settings &rarr; Safari &rarr; Advanced &rarr; Website Data &rarr; remove this site."],
+    ["What's safe", "Force-quitting the app, restarting your phone, low-storage warnings, normal iOS updates &mdash; none of these touch it."],
+    ['Real backup', "None of the above is a guarantee for every edge case. <b>Export regularly and AirDrop it off the phone</b> &mdash; that's the actual insurance, not a courtesy."],
+  ];
+  return '<div class="sheet-backdrop" onclick="closeInfoSheet()">' +
+    '<div class="sheet" onclick="event.stopPropagation()">' +
+      '<div class="sheet-handle"></div><div class="sheet-title">Where your data lives</div>' +
+      rows.map(function(r){
+        return '<div class="info-row"><div class="k">' + r[0] + '</div><div class="v">' + r[1] + '</div></div>';
+      }).join('') +
+    '</div></div>';
+}
+
 function render(){
   var root = document.getElementById('root');
   if(state.loading){
@@ -604,7 +734,8 @@ function render(){
     tabbarHTML() +
     '<div id="toast" class="toast"></div>' +
     (state.currencySheetOpen ? currencySheetHTML() : '') +
-    (state.pmSheetOpen ? pmSheetHTML() : '');
+    (state.pmSheetOpen ? pmSheetHTML() : '') +
+    (state.infoSheetOpen ? infoSheetHTML() : '');
   updateSaveButtonState();
 }
 
