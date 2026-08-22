@@ -67,6 +67,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .cat-bubble{width:52px;height:52px;border-radius:16px;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform .15s,background .15s,border-color .15s;}
 .cat-chip.selected .cat-bubble{background:var(--gold-dim);border-color:var(--gold);transform:scale(1.06);}
 .cat-label{font-size:11px;color:var(--text-dim);font-weight:500;}
+/* the TA category this button becomes -- shown only when it differs from the label */
+.cat-ta{font-size:9px;color:var(--text-dim);opacity:.6;font-weight:400;line-height:1.1;max-width:64px;text-align:center;}
+.cat-chip.selected .cat-ta{color:var(--gold);opacity:.85;}
 .cat-chip.selected .cat-label{color:var(--gold);}
 
 .pm-row{display:flex;gap:8px;overflow-x:auto;padding:0 20px 14px;scrollbar-width:none;}
@@ -160,6 +163,15 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .sheet-sym{font-family:'JetBrains Mono';font-weight:600;font-size:15px;}
 .sheet-code{font-size:10px;color:var(--text-dim);}
 
+.cat-head{display:flex;align-items:center;justify-content:space-between;padding:2px 20px 4px;}
+.cat-head-l{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;}
+.ta-row{display:flex;align-items:baseline;gap:8px;padding:6px 2px;border-bottom:1px solid var(--border);font-size:13px;}
+.ta-from{flex:0 0 46%;}
+.ta-arrow{color:var(--text-dim);opacity:.5;}
+.ta-to{color:var(--gold);font-weight:600;}
+.ta-to.open{color:var(--text-dim);font-weight:400;font-style:italic;}
+.ta-note{font-size:11px;color:var(--text-dim);line-height:1.5;margin:8px 2px 12px;}
+.ta-btn{background:none;border:1px solid var(--border);border-radius:999px;color:var(--text-dim);font-size:11px;padding:3px 11px;font-family:inherit;}
 .loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);}
 </style>
 </head>
@@ -167,6 +179,35 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 <div id="root"></div>
 <script>
 var CURRENCIES = {MYR:'RM',USD:'$',SGD:'S$',EUR:'€',GBP:'£',JPY:'¥',CNY:'¥',IDR:'Rp',THB:'฿',AUD:'A$',INR:'₹'};
+// ---- TA category mapping ----------------------------------------------
+// GENERATED from the project's taxonomy.json (i001 P3/P6, 2026-08-22). This app's
+// buttons keep their friendly names; TA_MAP says which TA category each one becomes
+// when the export is read into TA, so a note recorded here needs no translation later.
+// null = deliberately NOT guessed -- it lands in TA as Unidentified for YY to resolve.
+// Do not hand-edit: regenerate with  python3 tools/taxonomy_export.py app
+var TA_MAP = {
+  "food": "Meal",
+  "groceries": "Meal",
+  "transport": "Transport",
+  "shopping": "Shopping",
+  "bills": "Bill",
+  "entertainment": "Shopping",
+  "health": "Medical",
+  "housing": "Bill",
+  "travel": "Travel",
+  "other": null,
+  "salary": "Salary",
+  "investment": "Dividend",
+  "gift": null,
+  "other_income": null
+};
+function taCategory(id){ return TA_MAP[id] || null; }
+function taTip(id, label){
+  var ta = taCategory(id);
+  if(!ta) return "ask in TA";
+  return ta === label ? "" : ta;
+}
+
 var EXPENSE_CATS = [
   {id:'food',emoji:'🍔',label:'Food'},
   {id:'transport',emoji:'🚗',label:'Transport'},
@@ -236,7 +277,7 @@ function todayStr(){
 var state = {
   tab:'add', type:'expense', amount:'0', currency:'MYR', category:null, payMethod:null, note:'',
   date: todayStr(),
-  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false, infoSheetOpen:false
+  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false, infoSheetOpen:false, taSheetOpen:false
 };
 var pendingDelete = null;
 var undoTimer = null;
@@ -328,7 +369,7 @@ function showToast(msg){
   toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2000);
 }
 
-function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; render(); }
+function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; state.taSheetOpen = false; render(); }
 
 function setType(type){
   if(state.type === type) return;
@@ -521,7 +562,15 @@ async function exportMonth(){
   }).join('\n');
 
   var generated = new Date().toISOString();
-  var jsonBlock = JSON.stringify({month: ym, generated: generated, transactions: list, totals: totals}, null, 2);
+  // Each entry carries the TA category it maps to, so TA never has to translate this
+  // app's button names. null = TA will surface it as Unidentified for YY.
+  var listForExport = list.map(function(t){
+    var o = {}; for(var k in t) o[k] = t[k];
+    o.ta_category = taCategory(t.category);
+    return o;
+  });
+  var jsonBlock = JSON.stringify({month: ym, generated: generated, schema: 'ledger-app/2',
+    taxonomy: 'i001 taxonomy.json 2026-08-22', transactions: listForExport, totals: totals}, null, 2);
 
   var md = '# Ledger — ' + ym + '\n\n' +
     'Generated ' + generated + ' from the Ledger phone app. ' + list.length + ' entries.\n\n' +
@@ -556,9 +605,12 @@ async function exportMonth(){
 function categoryRowHTML(){
   var cats = state.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
   return '<div class="cat-row">' + cats.map(function(c){
+    var tip = taTip(c.id, c.label);
     return '<button class="cat-chip ' + (state.category === c.id ? 'selected' : '') + '" onclick="selectCategory(\'' + c.id + '\')">' +
       '<span class="cat-bubble">' + c.emoji + '</span>' +
-      '<span class="cat-label">' + c.label + '</span></button>';
+      '<span class="cat-label">' + c.label + '</span>' +
+      (tip ? '<span class="cat-ta">' + escapeHtml(tip) + '</span>' : '<span class="cat-ta">&nbsp;</span>') +
+      '</button>';
   }).join('') + '</div>';
 }
 
@@ -629,6 +681,7 @@ function addScreenHTML(){
       '<span class="amount-symbol">' + CURRENCIES[state.currency] + '</span>' +
       '<span class="amount" id="amountVal">' + state.amount + '</span>' +
     '</div></div>' +
+    '<div class="cat-head"><span class="cat-head-l">Category</span><button class="ta-btn" onclick="openTaSheet()">= TA category</button></div>' +
     categoryRowHTML() +
     payMethodRowHTML() +
     '<div class="note-wrap"><input class="note-input" placeholder="Add a note (optional)" value="' + escapeHtml(state.note) + '" oninput="state.note=this.value" /></div>' +
@@ -707,6 +760,36 @@ function currencySheetHTML(){
     '</div></div>';
 }
 
+
+// Full button -> TA category reference. The chips carry a one-word tip; this is the
+// whole table in one place, generated from the same TA_MAP so it can never disagree.
+function taSheetHTML(){
+  function block(title, cats){
+    return '<div class="pm-group-label">' + title + '</div>' +
+      cats.map(function(c){
+        var ta = taCategory(c.id);
+        var right = ta
+          ? '<span class="ta-to">' + escapeHtml(ta) + '</span>'
+          : '<span class="ta-to open">Unidentified &mdash; you decide in TA</span>';
+        return '<div class="ta-row"><span class="ta-from">' + c.emoji + ' ' +
+          escapeHtml(c.label) + '</span><span class="ta-arrow">&rarr;</span>' + right + '</div>';
+      }).join('');
+  }
+  return '<div class="sheet-backdrop" onclick="closeTaSheet()">' +
+    '<div class="sheet" onclick="event.stopPropagation()">' +
+      '<div class="sheet-handle"></div>' +
+      '<div class="sheet-title">What each button becomes in TA</div>' +
+      '<div class="ta-note">Your buttons keep their short names. This is the category ' +
+      'TA files them under when you Export &mdash; nothing is translated by hand.</div>' +
+      block('Expense', EXPENSE_CATS) + block('Income', INCOME_CATS) +
+      '<div class="ta-note">Three buttons map to nothing on purpose: <b>Other</b>, ' +
+      '<b>Gift</b> and <b>Other</b> (income). TA surfaces those for you to categorise ' +
+      'rather than guessing.</div>' +
+    '</div></div>';
+}
+function openTaSheet(){ state.taSheetOpen = true; render(); }
+function closeTaSheet(){ state.taSheetOpen = false; render(); }
+
 function infoSheetHTML(){
   var rows = [
     ['Where it lives', "<code>localStorage</code> &mdash; a storage bucket tied to THIS Home Screen icon specifically. Not cache, not shared with a Safari tab, doesn't sync anywhere until you tap Export."],
@@ -735,7 +818,8 @@ function render(){
     '<div id="toast" class="toast"></div>' +
     (state.currencySheetOpen ? currencySheetHTML() : '') +
     (state.pmSheetOpen ? pmSheetHTML() : '') +
-    (state.infoSheetOpen ? infoSheetHTML() : '');
+    (state.infoSheetOpen ? infoSheetHTML() : '') +
+    (state.taSheetOpen ? taSheetHTML() : '');
   updateSaveButtonState();
 }
 
