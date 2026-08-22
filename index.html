@@ -172,6 +172,44 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .ta-to.open{color:var(--text-dim);font-weight:400;font-style:italic;}
 .ta-note{font-size:11px;color:var(--text-dim);line-height:1.5;margin:8px 2px 12px;}
 .ta-btn{background:none;border:1px solid var(--border);border-radius:999px;color:var(--text-dim);font-size:11px;padding:3px 11px;font-family:inherit;}
+.bills-screen{display:flex;flex-direction:column;flex:1;min-height:100%;}
+.bm-nav{display:flex;align-items:center;justify-content:center;gap:18px;padding:2px 20px 10px;}
+.bm-nav button{background:var(--surface);border:1.5px solid var(--border);border-radius:999px;
+ width:34px;height:34px;color:var(--text);font-size:17px;line-height:1;}
+.bm-mlabel{font-family:'Space Grotesk';font-weight:700;font-size:16px;min-width:150px;text-align:center;}
+.bm-chips{display:flex;gap:7px;flex-wrap:wrap;padding:0 20px 12px;}
+.bm-chip{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:999px;
+ background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border);}
+.bm-chip.over{background:rgba(255,107,107,.14);color:var(--expense);border-color:rgba(255,107,107,.4);}
+.bm-chip.due{background:var(--gold-dim);color:var(--gold);border-color:rgba(232,184,75,.4);}
+.bm-chip.paid{background:rgba(74,222,128,.12);color:var(--income);border-color:rgba(74,222,128,.35);}
+.bm-list{padding:0 20px 20px;}
+.bm-today{display:flex;align-items:center;gap:10px;margin:12px 0 6px;}
+.bm-today span{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--gold);
+ background:var(--gold-dim);border-radius:999px;padding:3px 11px;}
+.bm-day{display:flex;gap:12px;margin-bottom:10px;}
+.bm-daynum{flex:0 0 30px;height:30px;border-radius:10px;background:var(--surface-2);
+ border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+ font-size:12px;font-weight:700;color:var(--text-dim);margin-top:4px;}
+.bm-items{flex:1;display:flex;flex-direction:column;gap:6px;}
+.bm-item{display:flex;align-items:center;gap:10px;background:var(--surface);
+ border:1.5px solid var(--border);border-radius:14px;padding:9px 12px;}
+.bm-item.over{border-color:rgba(255,107,107,.55);}
+.bm-item.due{border-color:rgba(232,184,75,.5);}
+.bm-item.paid{opacity:.62;}
+.bm-item.auto,.bm-item.tenant{opacity:.55;}
+.bm-tick{flex:0 0 28px;height:28px;border-radius:9px;border:1.5px solid var(--border);
+ background:var(--surface-2);color:var(--text-dim);font-size:13px;font-weight:700;}
+.bm-tick.paid{background:rgba(74,222,128,.16);border-color:var(--income);color:var(--income);}
+.bm-tick.over{border-color:var(--expense);}
+.bm-tick:disabled{opacity:.5;}
+.bm-body{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;}
+.bm-nm{font-size:14px;font-weight:600;color:var(--text);}
+.bm-sub{font-size:10.5px;color:var(--text-faint);}
+.bm-note{font-size:10.5px;color:var(--gold);opacity:.85;margin-top:2px;}
+.bm-tag{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.bm-tag.over{background:rgba(255,107,107,.16);color:var(--expense);}
+.bm-tag.due{background:var(--gold-dim);color:var(--gold);}
 .loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);}
 </style>
 </head>
@@ -179,6 +217,96 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 <div id="root"></div>
 <script>
 var CURRENCIES = {MYR:'RM',USD:'$',SGD:'S$',EUR:'€',GBP:'£',JPY:'¥',CNY:'¥',IDR:'Rp',THB:'฿',AUD:'A$',INR:'₹'};
+// GENERATED from dev/BM/scripts/bm_bills.py + taxonomy.json
+// regenerate: python3 tools/taxonomy_export.py bills_app
+// `id` IS the localStorage key for a bill's tick and note. Never change one.
+var BILLS=[
+ {id:"cc_dbs", grp:"Credit card", nm:"DBS Altitude Visa", acct:"4119…2409", due:7, stmt:"12p", mode:"manual", freq:"monthly", chan:"DBS app"},
+ {id:"cc_citi", grp:"Credit card", nm:"Citi PremierMiles", acct:"5425…2864", due:16, stmt:"19p", mode:"manual", freq:"monthly", chan:"DBS app"},
+ {id:"cc_pbbv", grp:"Credit card", nm:"PBB Visa Signature", acct:"4386…8101", due:6, stmt:"17p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
+ {id:"cc_pbbq", grp:"Credit card", nm:"PBB Quantum", acct:"5379…9109", due:6, stmt:"17p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
+ {id:"cc_uob", grp:"Credit card", nm:"UOB Mastercard", acct:"5402…3988", due:25, stmt:"5", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
+ {id:"cc_amex", grp:"Credit card", nm:"Maybank Amex", acct:"3791…04079", due:17, stmt:"", mode:"auto", freq:"monthly", chan:"auto"},
+ {id:"in_mazda", grp:"Installment", nm:"PBB Hire Purchase — Mazda", acct:"800454552290010", due:30, stmt:"", mode:"auto", freq:"monthly", chan:"auto · CIMB"},
+ {id:"in_henge", grp:"Installment", nm:"The Henge installment", acct:"71204000075614", due:5, stmt:"", mode:"auto", freq:"monthly", chan:"auto · RHB"},
+ {id:"in_ember", grp:"Installment", nm:"Ember installment", acct:"4681023615", due:4, stmt:"", mode:"auto", freq:"monthly", chan:"auto · HLB"},
+ {id:"ski_tnb", grp:"SKI home", nm:"Electric (TNB)", acct:"220050417502", due:5, stmt:"6p", mode:"manual", freq:"monthly", chan:"TNB app"},
+ {id:"ski_wat", grp:"SKI home", nm:"Water", acct:"8887540000", due:13, stmt:"11", mode:"manual", freq:"monthly", chan:"Air Selangor app"},
+ {id:"ski_ast", grp:"SKI home", nm:"Astro", acct:"837354985", due:17, stmt:"", mode:"auto", freq:"monthly", chan:"auto"},
+ {id:"ski_uni", grp:"SKI home", nm:"Unifi", acct:"1039196801", due:11, stmt:"", mode:"auto", freq:"monthly", chan:"auto · TNG"},
+ {id:"hg_elec", grp:"The Henge", nm:"Electric (TNB)", acct:"210108907100", due:4, stmt:"", mode:"tenant", freq:"monthly", chan:"tenant"},
+ {id:"hg_wat", grp:"The Henge", nm:"Water", acct:"7222966998", due:26, stmt:"", mode:"tenant", freq:"monthly", chan:"tenant"},
+ {id:"hg_maint", grp:"The Henge", nm:"Maintenance", acct:"D-10-07", due:15, stmt:"?", mode:"manual", freq:"monthly", chan:"CSS Home app"},
+ {id:"hg_time", grp:"The Henge", nm:"TIME internet", acct:"612897310719", due:8, stmt:"", mode:"auto", freq:"monthly", chan:"auto"},
+ {id:"hg_iwk", grp:"The Henge", nm:"Indah Water (sewerage)", acct:"11549898885", due:28, stmt:"14p", mode:"manual", freq:"periodic6", dueMonths:[2,8], chan:"IWK / JomPAY 68502", info:"RM90/half (RM15×6) · by 31 Aug / 28 Feb"},
+ {id:"hg_quit", grp:"The Henge", nm:"Quit rent", acct:"14903501004253", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[5], chan:"e-Tanah portal", info:"RM20/yr · 2026 PAID"},
+ {id:"hg_dbkl", grp:"The Henge", nm:"DBKL assessment", acct:"1611907068124", due:28, stmt:"1p", mode:"manual", freq:"semiannual", dueMonths:[2,8], chan:"DBKL / JomPAY 6981", info:"RM276/half · RM271 now (RM5 credit) · by 31 Aug"},
+ {id:"hg_fire", grp:"The Henge", nm:"Fire insurance", acct:"—", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[12], chan:"bank"},
+ {id:"em_tnb", grp:"Ember", nm:"Electric (TNB)", acct:"210445304308", due:8, stmt:"9p", mode:"manual", freq:"monthly", chan:"TNB app"},
+ {id:"em_wat", grp:"Ember", nm:"Water", acct:"6330261622", due:27, stmt:"25", mode:"manual", freq:"monthly", chan:"Air Selangor app"},
+ {id:"em_iwk", grp:"Ember", nm:"Indah Water (sewerage)", acct:"11201552041", due:14, stmt:"receipt", mode:"manual", freq:"periodic6", dueMonths:[1,7], chan:"IWK app / TNG", info:"CYCLE TBC (Henge is Feb/Aug)", outstanding:true},
+ {id:"em_vq", grp:"Ember", nm:"ViewQwest 300mbps", acct:"A00117946", due:2, stmt:"", mode:"auto", freq:"monthly", chan:"auto · card"},
+ {id:"em_maint", grp:"Ember", nm:"Maintenance", acct:"neighbourhood+", due:15, stmt:"?", mode:"manual", freq:"monthly", chan:"neighbourhood+ app"},
+ {id:"em_fire", grp:"Ember", nm:"Fire insurance", acct:"—", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[12], chan:"bank / HLB loan"},
+ {id:"em_mbsa", grp:"Ember", nm:"MBSA assessment", acct:"CU1200003224", due:28, stmt:"TBC", mode:"manual", freq:"semiannual", dueMonths:[2,8], chan:"MBSA app", info:"~RM283.68/half"},
+ {id:"sub_fit", grp:"Subscription", nm:"Anytime Fitness", acct:"—", due:1, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB"},
+ {id:"sub_net", grp:"Subscription", nm:"Netflix", acct:"Netflix SG", due:25, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB Visa"},
+ {id:"sub_gomo", grp:"Subscription", nm:"Gomo Singapore", acct:"Gomo SG", due:1, stmt:"", mode:"auto", freq:"monthly", chan:"auto · SG card"},
+ {id:"ins_ge", grp:"Insurance", nm:"Great Eastern", acct:"GE 1014970091", due:29, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB Quantum"},
+ {id:"ins_mazda", grp:"Insurance", nm:"Mazda road tax + insurance", acct:"RAN5678 (renew May)", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[5], chan:"MyEG / JPJ", info:"renews May"},
+];
+var TA_BILL_MAP={"Credit card": "Local Transfer", "Installment": "Installment", "SKI home": "Bill", "The Henge": "Bill", "Ember": "Bill", "Insurance": "Insurance", "Subscription": "__per_bill__"};
+var TA_BILL_PER_NAME={"Anytime Fitness": "Sports & Self-care", "Netflix": "Living", "Gomo Singapore": "Living"};
+
+// ---- Bills: YY's tick and note per month. Keys are bm_paid_<YYYY-MM> and
+// bm_note_<YYYY-MM>, unchanged from the standalone Bill Manager, so an export from
+// that app imports into this one untouched.
+function bmLoad(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}'); }catch(e){ return {}; } }
+function bmSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ showToast('Could not save'); } }
+
+// Payments YY recorded before this app existed, carried from the Google Sheet
+// (snapshot 18 Jul 2026). Seeded ONCE and never over an existing value, so unticking
+// something here stays unticked.
+var BM_SEED = {
+ '2026-05':{paid:{cc_uob:1}, note:{cc_uob:'6/3 cimb rm14796.72'}},
+ '2026-06':{paid:{}, note:{cc_pbbv:'6/9 cimb rm8964.15', cc_pbbq:'6/9 cimb rm220', cc_uob:'6/30 cimb rm5493.64'}},
+ '2026-07':{paid:{ski_tnb:1,cc_pbbv:1,cc_pbbq:1,cc_dbs:1,em_tnb:1,ski_wat:1,em_iwk:1,hg_maint:1,em_maint:1,cc_citi:1,cc_uob:1,em_wat:1},
+            note:{ski_tnb:'7/5 cimb part of rm438.24', cc_pbbv:'6/23 cimb rm5366.08', cc_pbbq:'6/23 cimb rm220',
+                  cc_dbs:'7/14 dbs sgd632', em_tnb:'7/5 cimb part of rm438.24', ski_wat:'7/5 cimb rm16.90',
+                  em_iwk:'7/18 cimb rm45', hg_maint:'6/30 CSS rm319', em_maint:'7/5 dbs rm438.24',
+                  cc_citi:'7/9 dbs sgd131.07', cc_uob:'7/18 cimb rm2280.05', hg_elec:'6/12', em_wat:'7/5 AS rm16.90'}},
+ '2026-08':{paid:{cc_pbbv:1, hg_iwk:1}, note:{cc_pbbv:'7/18 rm10000 cimb'}}
+};
+(function seedBills(){
+  try{
+    if(localStorage.getItem('bm_seed_v1')) return;
+    Object.keys(BM_SEED).forEach(function(ym){
+      var p=bmLoad('bm_paid_'+ym), n=bmLoad('bm_note_'+ym), v=BM_SEED[ym];
+      Object.keys(v.paid).forEach(function(id){ if(p[id]===undefined) p[id]=true; });
+      Object.keys(v.note).forEach(function(id){ if(!n[id]) n[id]=v.note[id]; });
+      bmSave('bm_paid_'+ym,p); bmSave('bm_note_'+ym,n);
+    });
+    localStorage.setItem('bm_seed_v1','done');
+  }catch(e){}
+})();
+
+function bmKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function billsDue(d){ var m=d.getMonth()+1;
+  return BILLS.filter(function(b){ return b.freq==='monthly' || (b.dueMonths||[]).indexOf(m)>=0; }); }
+function billStatus(b, paid, isCur, today){
+  if(b.mode==='tenant') return 'tenant';
+  if(b.mode==='auto')   return 'auto';
+  if(paid)              return 'paid';
+  if(isCur && today > b.due)                      return 'over';
+  if(isCur && b.due-today<=3 && b.due>=today)     return 'due';
+  return 'up';
+}
+function taForBill(b){
+  var m = TA_BILL_MAP[b.grp];
+  if(m === '__per_bill__') return TA_BILL_PER_NAME[b.nm] || null;
+  return m || null;
+}
+
 // ---- TA category mapping ----------------------------------------------
 // GENERATED from the project's taxonomy.json (i001 P3/P6, 2026-08-22). This app's
 // buttons keep their friendly names; TA_MAP says which TA category each one becomes
@@ -264,6 +392,7 @@ PAY_METHOD_GROUPS.forEach(function(g){
 
 var plusSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 var listSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
+var billSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 3v18l2-1.5L8 21l2-1.5L12 21l2-1.5L16 21l2-1.5L20 21V3z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
 var backspaceSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>';
 var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
 
@@ -277,7 +406,7 @@ function todayStr(){
 var state = {
   tab:'add', type:'expense', amount:'0', currency:'MYR', category:null, payMethod:null, note:'',
   date: todayStr(),
-  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false, infoSheetOpen:false, taSheetOpen:false
+  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false, infoSheetOpen:false, taSheetOpen:false, billOpen:null
 };
 var pendingDelete = null;
 var undoTimer = null;
@@ -335,6 +464,33 @@ function mergeTransactions(list){
   return {added: added, skipped: skipped};
 }
 
+
+// Restore bill ticks and notes from an export. MERGES: an existing tick or note is
+// never overwritten, only missing ones are filled, so re-importing the same file twice
+// changes nothing. Accepts this app's export and the standalone Bill Manager's.
+function mergeBills(text){
+  var added = {ticks:0, notes:0};
+  var m = text.match(/```json\s*([\s\S]*?)```/);
+  if(!m) return added;
+  var data;
+  try{ data = JSON.parse(m[1]); }catch(e){ return added; }
+  var months = data.bills || (data.months && !data.transactions ? data.months : null);
+  if(!months) return added;
+  Object.keys(months).forEach(function(ym){
+    if(!/^\d{4}-\d{2}$/.test(ym)) return;
+    var inc = months[ym] || {};
+    var p = bmLoad('bm_paid_'+ym), n = bmLoad('bm_note_'+ym);
+    Object.keys(inc.paid||{}).forEach(function(id){
+      if(p[id]===undefined){ p[id]=inc.paid[id]; added.ticks++; }
+    });
+    Object.keys(inc.note||{}).forEach(function(id){
+      if(!n[id]){ n[id]=inc.note[id]; added.notes++; }
+    });
+    bmSave('bm_paid_'+ym,p); bmSave('bm_note_'+ym,n);
+  });
+  return added;
+}
+
 function triggerImport(){
   var input = document.getElementById('importFile');
   if(input) input.click();
@@ -347,11 +503,19 @@ function handleImportFile(ev){
   var reader = new FileReader();
   reader.onload = async function(){
     try{
-      var list = extractTransactionsFromText(String(reader.result));
-      var res = mergeTransactions(list);
+      var text = String(reader.result);
+      var res = {added:0, skipped:0};
+      try{ res = mergeTransactions(extractTransactionsFromText(text)); }
+      catch(e){ /* a bills-only export has no transactions[] -- that is fine */ }
+      var bres = mergeBills(text);
       await persist();
       render();
-      showToast(res.added + ' imported' + (res.skipped ? ' &middot; ' + res.skipped + ' already had' : ''));
+      var bits = [];
+      if(res.added || !bres.ticks && !bres.notes) bits.push(res.added + ' txn');
+      if(bres.ticks) bits.push(bres.ticks + ' tick');
+      if(bres.notes) bits.push(bres.notes + ' note');
+      showToast(bits.join(' &middot; ') + ' imported' +
+                (res.skipped ? ' &middot; ' + res.skipped + ' already had' : ''));
     }catch(e){
       showToast('Import failed — not a Ledger export file');
     }
@@ -369,7 +533,7 @@ function showToast(msg){
   toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2000);
 }
 
-function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; state.taSheetOpen = false; render(); }
+function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; state.taSheetOpen = false; state.billOpen = null; render(); }
 
 function setType(type){
   if(state.type === type) return;
@@ -569,8 +733,28 @@ async function exportMonth(){
     o.ta_category = taCategory(t.category);
     return o;
   });
-  var jsonBlock = JSON.stringify({month: ym, generated: generated, schema: 'ledger-app/2',
-    taxonomy: 'i001 taxonomy.json 2026-08-22', transactions: listForExport, totals: totals}, null, 2);
+  // Bills travel in the SAME file as the transactions -- one export is the whole
+  // backup, so there is never a half-restored device. Keys are unchanged
+  // (bm_paid_<YYYY-MM> / bm_note_<YYYY-MM>), so an export from the standalone Bill
+  // Manager still imports here and vice versa.
+  var billsOut = {};
+  try{
+    for(var bi=0; bi<localStorage.length; bi++){
+      var lk = localStorage.key(bi);
+      var bmm = /^bm_(paid|note)_(\d{4}-\d{2})$/.exec(lk);
+      if(!bmm) continue;
+      billsOut[bmm[2]] = billsOut[bmm[2]] || {paid:{}, note:{}};
+      billsOut[bmm[2]][bmm[1]] = JSON.parse(localStorage.getItem(lk)||'{}');
+    }
+  }catch(e){}
+  var nTick = 0, nNote = 0;
+  Object.keys(billsOut).forEach(function(k){
+    nTick += Object.keys(billsOut[k].paid||{}).filter(function(i){return billsOut[k].paid[i];}).length;
+    nNote += Object.keys(billsOut[k].note||{}).filter(function(i){return billsOut[k].note[i];}).length;
+  });
+  var jsonBlock = JSON.stringify({month: ym, generated: generated, schema: 'ledger-app/3',
+    taxonomy: 'i001 taxonomy.json 2026-08-22', transactions: listForExport, totals: totals,
+    bills: billsOut, bill_register: BILLS.length}, null, 2);
 
   var md = '# Ledger — ' + ym + '\n\n' +
     'Generated ' + generated + ' from the Ledger phone app. ' + list.length + ' entries.\n\n' +
@@ -578,6 +762,22 @@ async function exportMonth(){
     '|---|---|---|---|---|---|---|\n' +
     rows + '\n\n' +
     '**Totals**\n\n' + totalsLines + '\n\n' +
+    (Object.keys(billsOut).length
+      ? '## Bills — payment record\n\n' + nTick + ' paid tick(s), ' + nNote +
+        ' note(s), against a ' + BILLS.length + '-bill register.\n\n' +
+        '| Month | Bill | Paid | Note |\n|---|---|---|---|\n' +
+        Object.keys(billsOut).sort().map(function(k){
+          var d=billsOut[k], seen={}, out=[];
+          Object.keys(d.paid||{}).forEach(function(i){seen[i]=1;});
+          Object.keys(d.note||{}).forEach(function(i){seen[i]=1;});
+          Object.keys(seen).sort().forEach(function(id){
+            var b=null; for(var q=0;q<BILLS.length;q++) if(BILLS[q].id===id) b=BILLS[q];
+            out.push('| '+k+' | '+(b?b.nm:id)+' | '+((d.paid||{})[id]?'PAID':'')+' | '+
+                     String((d.note||{})[id]||'').replace(/\|/g,'/')+' |');
+          });
+          return out.join('\n');
+        }).join('\n') + '\n\n'
+      : '') +
     '<details><summary>Raw data (for machine parsing — reconcile against the totals above)</summary>\n\n' +
     '```json\n' + jsonBlock + '\n```\n\n</details>\n';
 
@@ -745,6 +945,7 @@ function tabbarHTML(){
   return '<div class="tabbar">' +
     '<button class="' + (state.tab==='add'?'active':'') + '" onclick="switchTab(\'add\')">' + plusSvg + '<span>Add</span></button>' +
     '<button class="' + (state.tab==='history'?'active':'') + '" onclick="switchTab(\'history\')">' + listSvg + '<span>History</span></button>' +
+    '<button class="' + (state.tab==='bills'?'active':'') + '" onclick="switchTab(\'bills\')">' + billSvg + '<span>Bills</span></button>' +
   '</div>';
 }
 
@@ -790,6 +991,131 @@ function taSheetHTML(){
 function openTaSheet(){ state.taSheetOpen = true; render(); }
 function closeTaSheet(){ state.taSheetOpen = false; render(); }
 
+
+// ================= Bills tab =================================================
+// Phone-first on purpose. The standalone Bill Manager rendered a 9-column sortable
+// table -- fine on a laptop, useless on a phone, and the same shape as the Google
+// Sheet YY called unfriendly. What matters on a phone is: what is due, what is late,
+// one tap to tick. Account number and pay channel move into the detail sheet.
+var billMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+function shiftBillMonth(n){
+  billMonth = new Date(billMonth.getFullYear(), billMonth.getMonth()+n, 1);
+  render();
+}
+function toggleBill(id){
+  var k='bm_paid_'+bmKey(billMonth), s=bmLoad(k);
+  s[id] = !s[id]; bmSave(k,s);
+  showToast(s[id] ? 'Marked paid' : 'Unticked');
+  render();
+}
+function openBill(id){ state.billOpen = id; render(); }
+function closeBill(){ state.billOpen = null; render(); }
+function setBillNote(id, v){
+  var k='bm_note_'+bmKey(billMonth), n=bmLoad(k);
+  n[id]=v; bmSave(k,n);
+}
+
+var BILL_MONTHS=['January','February','March','April','May','June','July','August',
+                 'September','October','November','December'];
+var ST_LABEL={paid:'Paid',over:'Overdue',due:'Due soon',up:'To pay',auto:'Auto',tenant:'Tenant'};
+
+function billsScreenHTML(){
+  var key=bmKey(billMonth), now=new Date();
+  var isCur = billMonth.getFullYear()===now.getFullYear() && billMonth.getMonth()===now.getMonth();
+  var today = now.getDate();
+  var paid=bmLoad('bm_paid_'+key), notes=bmLoad('bm_note_'+key);
+  var bills=billsDue(billMonth);
+
+  var n={paid:0,over:0,due:0,up:0,auto:0,tenant:0};
+  bills.forEach(function(b){ n[billStatus(b,paid[b.id],isCur,today)]++; });
+
+  var byDay={};
+  bills.forEach(function(b){ (byDay[b.due]=byDay[b.due]||[]).push(b); });
+  var days=Object.keys(byDay).map(Number).sort(function(a,b){return a-b;});
+
+  var listHTML='', todayShown=false;
+  days.forEach(function(d){
+    if(isCur && !todayShown && d>today){
+      listHTML+='<div class="bm-today"><span>TODAY &middot; '+today+' '+
+                BILL_MONTHS[billMonth.getMonth()].slice(0,3)+'</span></div>';
+      todayShown=true;
+    }
+    listHTML+='<div class="bm-day"><div class="bm-daynum">'+d+'</div><div class="bm-items">';
+    byDay[d].forEach(function(b){
+      var st=billStatus(b,paid[b.id],isCur,today);
+      var manual=b.mode==='manual';
+      var mark = b.mode==='auto'?'A' : b.mode==='tenant'?'T' : (paid[b.id]?'&#10003;':'');
+      var note=notes[b.id]||'';
+      listHTML+='<div class="bm-item '+st+'">'
+        + '<button class="bm-tick '+st+'" '+(manual?'onclick="toggleBill(\''+b.id+'\')"':'disabled')+'>'+mark+'</button>'
+        + '<button class="bm-body" onclick="openBill(\''+b.id+'\')">'
+        +   '<span class="bm-nm">'+escapeHtml(b.nm)+'</span>'
+        +   '<span class="bm-sub">'+escapeHtml(b.grp)+' &middot; '+escapeHtml(b.chan)+'</span>'
+        +   (note?'<span class="bm-note">'+escapeHtml(note)+'</span>':'')
+        + '</button>'
+        + (st==='over'||st==='due' ? '<span class="bm-tag '+st+'">'+ST_LABEL[st]+'</span>' : '')
+        + '</div>';
+    });
+    listHTML+='</div></div>';
+  });
+
+  return '<div class="bills-screen">'
+    + importInputHTML()
+    + '<div class="app-header"><div class="brand">Bills</div>'
+    +   '<div class="header-actions">'+infoButtonHTML()
+    +   '<button class="export-btn import-btn" onclick="triggerImport()">Import</button>'
+    +   '<button class="export-btn" onclick="exportMonth()">Export</button></div></div>'
+    + '<div class="bm-nav"><button onclick="shiftBillMonth(-1)">&lsaquo;</button>'
+    +   '<div class="bm-mlabel">'+BILL_MONTHS[billMonth.getMonth()]+' '+billMonth.getFullYear()+'</div>'
+    +   '<button onclick="shiftBillMonth(1)">&rsaquo;</button></div>'
+    + '<div class="bm-chips">'
+    +   (n.over?'<span class="bm-chip over">'+n.over+' overdue</span>':'')
+    +   (n.due?'<span class="bm-chip due">'+n.due+' due soon</span>':'')
+    +   '<span class="bm-chip up">'+n.up+' to pay</span>'
+    +   '<span class="bm-chip paid">'+n.paid+' paid</span>'
+    +   '<span class="bm-chip auto">'+n.auto+' auto</span>'
+    +   (n.tenant?'<span class="bm-chip tenant">'+n.tenant+' tenant</span>':'')
+    + '</div>'
+    + '<div class="bm-list">'+listHTML+'</div>'
+    + '</div>';
+}
+
+function billSheetHTML(){
+  var b=null, i;
+  for(i=0;i<BILLS.length;i++) if(BILLS[i].id===state.billOpen) b=BILLS[i];
+  if(!b) return '';
+  var key=bmKey(billMonth);
+  var notes=bmLoad('bm_note_'+key), paid=bmLoad('bm_paid_'+key);
+  var ta=taForBill(b);
+  function row(k,v){
+    return v ? '<div class="ta-row"><span class="ta-from">'+escapeHtml(k)+
+               '</span><span class="ta-to">'+escapeHtml(String(v))+'</span></div>' : '';
+  }
+  return '<div class="sheet-backdrop" onclick="closeBill()">'
+    + '<div class="sheet" onclick="event.stopPropagation()">'
+    +   '<div class="sheet-handle"></div>'
+    +   '<div class="sheet-title">'+escapeHtml(b.nm)+'</div>'
+    +   row('Category', b.grp)
+    +   row('Account', b.acct)
+    +   row('Due', 'day '+b.due+' of the month')
+    +   row('Statement issued', b.stmt==='Np' ? 'previous month' : (b.stmt||''))
+    +   row('Pay channel', b.chan)
+    +   row('Frequency', b.freq)
+    +   row('Books to (TA)', ta || 'not mapped')
+    +   (b.info?'<div class="ta-note">'+escapeHtml(b.info)+'</div>':'')
+    +   '<div class="note-wrap" style="padding:10px 0 4px"><input class="note-input" '
+    +     'placeholder="Note — how you paid it" value="'+escapeHtml(notes[b.id]||'')+'" '
+    +     'oninput="setBillNote(\''+b.id+'\', this.value)"></div>'
+    +   (b.mode==='manual'
+        ? '<button class="save-btn" style="margin-top:10px" onclick="toggleBill(\''+b.id+'\');closeBill();">'
+          + (paid[b.id]?'Mark unpaid':'Mark paid') + '</button>'
+        : '<div class="ta-note">'+(b.mode==='auto'
+             ? 'Pays itself — BM reconciles it against the bank later.'
+             : 'The tenant pays this during the Henge tenancy.')+'</div>')
+    + '</div></div>';
+}
+
 function infoSheetHTML(){
   var rows = [
     ['Where it lives', "<code>localStorage</code> &mdash; a storage bucket tied to THIS Home Screen icon specifically. Not cache, not shared with a Safari tab, doesn't sync anywhere until you tap Export."],
@@ -813,13 +1139,15 @@ function render(){
     return;
   }
   root.innerHTML =
-    '<div class="screen-container">' + (state.tab==='add' ? addScreenHTML() : historyScreenHTML()) + '</div>' +
+    '<div class="screen-container">' + (state.tab==='add' ? addScreenHTML() :
+      state.tab==='bills' ? billsScreenHTML() : historyScreenHTML()) + '</div>' +
     tabbarHTML() +
     '<div id="toast" class="toast"></div>' +
     (state.currencySheetOpen ? currencySheetHTML() : '') +
     (state.pmSheetOpen ? pmSheetHTML() : '') +
     (state.infoSheetOpen ? infoSheetHTML() : '') +
-    (state.taSheetOpen ? taSheetHTML() : '');
+    (state.taSheetOpen ? taSheetHTML() : '') +
+    (state.billOpen ? billSheetHTML() : '');
   updateSaveButtonState();
 }
 
