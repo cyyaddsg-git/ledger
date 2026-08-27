@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ledger">
+<meta name="theme-color" content="#0F1712">
+<title>Ledger</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
+
+:root{
+  --bg:#0F1712;
+  --surface:#16211B;
+  --surface-2:#1D2A22;
+  --border:#263429;
+  --gold:#E8B84B;
+  --gold-dim:rgba(232,184,75,0.14);
+  --expense:#FF6B6B;
+  --income:#4ADE80;
+  --text:#F2F0E9;
+  --text-dim:#8FA396;
+  --text-faint:#5B6A60;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overscroll-behavior:none;}
+button,input{font:inherit;color:inherit;-webkit-appearance:none;appearance:none;touch-action:manipulation;}
+button{background:none;border:none;cursor:pointer;-webkit-user-select:none;user-select:none;}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+
+#root{min-height:100dvh;display:flex;flex-direction:column;}
+.screen-container{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;}
+.add-screen{display:flex;flex-direction:column;flex:1;min-height:100%;}
+.history-screen{display:flex;flex-direction:column;}
+.market-screen{display:flex;flex-direction:column;flex:1;min-height:100%;}
+.market-frame{flex:1 1 auto;width:100%;border:0;background:#080d0a;min-height:60vh;}
+.market-note{color:var(--text-faint);font-size:11px;padding:8px 20px calc(env(safe-area-inset-bottom) + 4px);line-height:1.5;}
+
+.app-header{padding:calc(env(safe-area-inset-top) + 16px) 20px 6px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.brand{font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-0.02em;}
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
+.currency-pill{background:var(--surface-2);border:1px solid var(--border);font-family:'JetBrains Mono';font-size:13px;padding:7px 12px;border-radius:20px;}
+.export-btn{background:var(--surface-2);border:1px solid var(--border);color:var(--gold);font-weight:600;font-size:13px;padding:7px 14px;border-radius:20px;white-space:nowrap;}
+.export-btn:active{background:var(--gold-dim);}
+.export-btn.import-btn{color:var(--text-dim);}
+.info-btn{width:30px;height:30px;flex:0 0 auto;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);font-size:15px;display:flex;align-items:center;justify-content:center;}
+.info-btn:active{background:var(--gold-dim);color:var(--gold);}
+.tx-pm{font-size:12px;}
+
+.date-row{padding:0 20px 12px;}
+.date-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:10px 14px;font-size:14px;font-weight:500;color:var(--text);font-family:'Inter',sans-serif;-webkit-appearance:auto;}
+.date-input::-webkit-date-and-time-value{text-align:left;}
+
+.segmented{display:flex;margin:6px 20px 0;background:var(--surface);border-radius:14px;padding:4px;}
+.segmented button{flex:1;font-family:'Inter';font-weight:600;font-size:14px;padding:9px 0;border-radius:10px;color:var(--text-dim);transition:background .15s,color .15s;}
+.segmented button.active.expense{background:rgba(255,107,107,0.14);color:var(--expense);}
+.segmented button.active.income{background:rgba(74,222,128,0.14);color:var(--income);}
+
+.amount-wrap{text-align:center;padding:26px 20px 16px;}
+.amount-row{display:flex;align-items:baseline;justify-content:center;gap:8px;}
+.amount-symbol{font-family:'JetBrains Mono';font-size:18px;color:var(--text-faint);}
+.amount{font-family:'Space Grotesk';font-weight:700;font-size:52px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
+
+.cat-row{display:flex;gap:10px;overflow-x:auto;padding:4px 20px 16px;scrollbar-width:none;}
+.cat-row::-webkit-scrollbar{display:none;}
+.cat-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px;}
+.cat-bubble{width:52px;height:52px;border-radius:16px;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform .15s,background .15s,border-color .15s;}
+.cat-chip.selected .cat-bubble{background:var(--gold-dim);border-color:var(--gold);transform:scale(1.06);}
+.cat-label{font-size:11px;color:var(--text-dim);font-weight:500;}
+/* the TA category this button becomes -- shown only when it differs from the label */
+.cat-ta{font-size:9px;color:var(--text-dim);opacity:.6;font-weight:400;line-height:1.1;max-width:64px;text-align:center;}
+.cat-chip.selected .cat-ta{color:var(--gold);opacity:.85;}
+.cat-chip.selected .cat-label{color:var(--gold);}
+
+.pm-row{display:flex;gap:8px;overflow-x:auto;padding:0 20px 14px;scrollbar-width:none;}
+.pm-row::-webkit-scrollbar{display:none;}
+.pm-chip{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:var(--surface);border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--text-dim);transition:background .15s,border-color .15s,color .15s;}
+.pm-chip.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.pm-chip.more{border-style:dashed;}
+.pm-label{font-size:13px;}
+
+/* pay-method bottom sheet: grouped 3-column grid, mirrors the currency sheet */
+.pm-group-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);margin:16px 0 8px;}
+.pm-group-label:first-of-type{margin-top:2px;}
+.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pm-item{background:var(--surface-2);border:1.5px solid var(--border);border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:60px;justify-content:center;}
+.pm-item.selected{border-color:var(--gold);background:var(--gold-dim);}
+.pm-item.selected .pm-label{color:var(--gold);}
+.pm-item.placeholder{opacity:.55;}
+.pm-icon{font-size:16px;}
+.pm-item .pm-label{font-size:10.5px;color:var(--text-dim);text-align:center;line-height:1.25;}
+
+.info-row{padding:11px 0;border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.info-row .k{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.info-row .v{font-size:13px;color:var(--text-dim);line-height:1.55;}
+.info-row .v b{color:var(--gold);font-weight:600;}
+
+.note-wrap{padding:0 20px 10px;}
+.note-input{width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border);padding:9px 2px;outline:none;font-size:15px;}
+.note-input:focus{border-color:var(--gold);}
+.note-input::placeholder{color:var(--text-faint);}
+
+.spacer{flex:1;}
+
+.keypad{padding:6px 16px 8px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.key{background:var(--surface);border-radius:14px;height:54px;font-family:'Space Grotesk';font-size:22px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s;}
+.key:active{background:var(--surface-2);transform:scale(0.95);}
+.key svg{width:20px;height:20px;stroke:var(--text-dim);}
+
+.save-btn{margin:6px 20px 18px;background:var(--gold);color:#14200F;border-radius:16px;height:52px;font-family:'Space Grotesk';font-weight:700;font-size:16px;transition:transform .1s;}
+.save-btn:disabled{background:var(--surface-2);color:var(--text-faint);}
+.save-btn:active:not(:disabled){transform:scale(0.98);}
+
+.tabbar{flex-shrink:0;display:flex;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 calc(env(safe-area-inset-bottom) + 8px);}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-faint);font-size:11px;font-weight:600;}
+.tabbar button.active{color:var(--gold);}
+.tabbar svg{width:22px;height:22px;stroke:currentColor;}
+
+.balance-row{display:flex;gap:10px;padding:6px 20px 18px;overflow-x:auto;scrollbar-width:none;}
+.balance-row::-webkit-scrollbar{display:none;}
+.balance-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 18px;min-width:150px;flex:0 0 auto;}
+.balance-currency{font-family:'JetBrains Mono';font-size:11px;color:var(--text-faint);letter-spacing:.08em;margin-bottom:4px;}
+.balance-amount{font-family:'Space Grotesk';font-weight:700;font-size:22px;font-variant-numeric:tabular-nums;}
+.balance-amount.pos{color:var(--income);}
+.balance-amount.neg{color:var(--expense);}
+.balance-sub{display:flex;gap:10px;margin-top:6px;font-family:'JetBrains Mono';font-size:11px;}
+.balance-sub .pos{color:var(--income);}
+.balance-sub .neg{color:var(--expense);}
+
+.tx-list{padding:4px 20px 24px;}
+.date-label{font-weight:600;font-size:12px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;}
+.tx-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.tx-bubble{width:40px;height:40px;border-radius:12px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.tx-info{flex:1;min-width:0;}
+.tx-cat{font-weight:600;font-size:14px;}
+.tx-note{font-size:12px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.tx-right{text-align:right;}
+.tx-amount{font-family:'JetBrains Mono';font-weight:600;font-size:14px;}
+.tx-amount.expense{color:var(--expense);}
+.tx-amount.income{color:var(--income);}
+.tx-time{font-size:10px;color:var(--text-faint);margin-top:2px;}
+.tx-del{color:var(--text-faint);padding:4px;margin-left:2px;}
+.tx-del svg{width:16px;height:16px;stroke:currentColor;}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:90px 30px;text-align:center;gap:4px;flex:1;}
+.empty-emoji{font-size:40px;margin-bottom:8px;}
+.empty-title{font-family:'Space Grotesk';font-weight:700;font-size:18px;}
+.empty-sub{color:var(--text-dim);font-size:13px;margin-bottom:16px;}
+.empty-cta{background:var(--gold);color:#14200F;border-radius:12px;padding:11px 20px;font-family:'Space Grotesk';font-weight:700;font-size:14px;}
+
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border);padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:all .2s;display:flex;align-items:center;gap:10px;z-index:50;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+.undo-btn{color:var(--gold);font-weight:700;font-size:13px;}
+
+.sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;z-index:60;}
+.sheet{background:var(--surface);width:100%;border-radius:20px 20px 0 0;padding:10px 20px calc(env(safe-area-inset-bottom) + 20px);max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:4px auto 14px;}
+.sheet-title{font-family:'Space Grotesk';font-weight:700;font-size:16px;margin-bottom:10px;}
+.sheet-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.sheet-item{background:var(--surface-2);border:1.5px solid var(--border);border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.sheet-item.selected{border-color:var(--gold);background:var(--gold-dim);}
+.sheet-sym{font-family:'JetBrains Mono';font-weight:600;font-size:15px;}
+.sheet-code{font-size:10px;color:var(--text-dim);}
+
+.cat-head{display:flex;align-items:center;justify-content:space-between;padding:2px 20px 4px;}
+.cat-head-l{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;}
+.ta-row{display:flex;align-items:baseline;gap:8px;padding:6px 2px;border-bottom:1px solid var(--border);font-size:13px;}
+.ta-from{flex:0 0 46%;}
+.ta-arrow{color:var(--text-dim);opacity:.5;}
+.ta-to{color:var(--gold);font-weight:600;}
+.ta-to.open{color:var(--text-dim);font-weight:400;font-style:italic;}
+.ta-note{font-size:11px;color:var(--text-dim);line-height:1.5;margin:8px 2px 12px;}
+.ta-btn{background:none;border:1px solid var(--border);border-radius:999px;color:var(--text-dim);font-size:11px;padding:3px 11px;font-family:inherit;}
+.tx-row.pending{opacity:.9;}
+.tx-amount.unknown{color:var(--text-faint);font-style:italic;}
+.tx-edit{flex:0 0 auto;color:var(--text-faint);padding:4px;}
+.tx-edit svg{width:16px;height:16px;stroke:currentColor;fill:none;}
+.editing-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ margin:0 20px 6px;padding:7px 14px;border-radius:12px;background:var(--gold-dim);
+ border:1px solid rgba(232,184,75,.45);color:var(--gold);font-size:12px;font-weight:600;}
+.editing-bar button{color:var(--gold);text-decoration:underline;font-size:12px;font-family:inherit;}
+.balance-sub .pend{color:var(--gold);}
+.bills-screen{display:flex;flex-direction:column;flex:1;min-height:100%;}
+.bm-nav{display:flex;align-items:center;justify-content:center;gap:18px;padding:2px 20px 10px;}
+.bm-nav button{background:var(--surface);border:1.5px solid var(--border);border-radius:999px;
+ width:34px;height:34px;color:var(--text);font-size:17px;line-height:1;}
+.bm-mlabel{font-family:'Space Grotesk';font-weight:700;font-size:16px;min-width:150px;text-align:center;}
+.bm-chips{display:flex;gap:7px;flex-wrap:wrap;padding:0 20px 12px;}
+.bm-chip{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:999px;
+ background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border);}
+.bm-chip.over{background:rgba(255,107,107,.14);color:var(--expense);border-color:rgba(255,107,107,.4);}
+.bm-chip.due{background:var(--gold-dim);color:var(--gold);border-color:rgba(232,184,75,.4);}
+.bm-chip.paid{background:rgba(74,222,128,.12);color:var(--income);border-color:rgba(74,222,128,.35);}
+.bm-list{padding:0 20px 20px;}
+.bm-today{display:flex;align-items:center;gap:10px;margin:12px 0 6px;}
+.bm-today span{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--gold);
+ background:var(--gold-dim);border-radius:999px;padding:3px 11px;}
+.bm-day{display:flex;gap:12px;margin-bottom:10px;}
+.bm-daynum{flex:0 0 30px;height:30px;border-radius:10px;background:var(--surface-2);
+ border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+ font-size:12px;font-weight:700;color:var(--text-dim);margin-top:4px;}
+.bm-items{flex:1;display:flex;flex-direction:column;gap:6px;}
+.bm-item{display:flex;align-items:center;gap:10px;background:var(--surface);
+ border:1.5px solid var(--border);border-radius:14px;padding:9px 12px;}
+.bm-item.over{border-color:rgba(255,107,107,.55);}
+.bm-item.due{border-color:rgba(232,184,75,.5);}
+.bm-item.paid{opacity:.62;}
+.bm-item.auto,.bm-item.tenant{opacity:.55;}
+.bm-tick{flex:0 0 28px;height:28px;border-radius:9px;border:1.5px solid var(--border);
+ background:var(--surface-2);color:var(--text-dim);font-size:13px;font-weight:700;}
+.bm-tick.paid{background:rgba(74,222,128,.16);border-color:var(--income);color:var(--income);}
+.bm-tick.over{border-color:var(--expense);}
+.bm-tick:disabled{opacity:.5;}
+.bm-body{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;}
+.bm-nm{font-size:14px;font-weight:600;color:var(--text);}
+.bm-sub{font-size:10.5px;color:var(--text-faint);}
+.bm-note{font-size:10.5px;color:var(--gold);opacity:.85;margin-top:2px;}
+.bm-tag{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.bm-tag.over{background:rgba(255,107,107,.16);color:var(--expense);}
+.bm-tag.due{background:var(--gold-dim);color:var(--gold);}
+.loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+var CURRENCIES = {MYR:'RM',USD:'$',SGD:'S$',EUR:'€',GBP:'£',JPY:'¥',CNY:'¥',IDR:'Rp',THB:'฿',AUD:'A$',INR:'₹'};
+// GENERATED from dev/BM/scripts/bm_bills.py + taxonomy.json
+// regenerate: python3 tools/taxonomy_export.py bills_app
+// `id` IS the localStorage key for a bill's tick and note. Never change one.
+var BILLS=[
+ {id:"cc_dbs", grp:"Credit card", nm:"DBS Altitude Visa", due:7, stmt:"12p", mode:"manual", freq:"monthly", chan:"DBS app"},
+ {id:"cc_citi", grp:"Credit card", nm:"Citi PremierMiles", due:16, stmt:"19p", mode:"manual", freq:"monthly", chan:"DBS app"},
+ {id:"cc_pbbv", grp:"Credit card", nm:"PBB Visa Signature", due:6, stmt:"17p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
+ {id:"cc_pbbq", grp:"Credit card", nm:"PBB Quantum", due:6, stmt:"17p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
+ {id:"cc_uob", grp:"Credit card", nm:"UOB Mastercard", due:25, stmt:"5", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
+ {id:"cc_amex", grp:"Credit card", nm:"Maybank Amex", due:17, stmt:"", mode:"auto", freq:"monthly", chan:"auto"},
+ {id:"in_mazda", grp:"Installment", nm:"PBB Hire Purchase — Mazda", due:30, stmt:"", mode:"auto", freq:"monthly", chan:"auto · CIMB"},
+ {id:"in_henge", grp:"Installment", nm:"The Henge installment", due:5, stmt:"", mode:"auto", freq:"monthly", chan:"auto · RHB"},
+ {id:"in_ember", grp:"Installment", nm:"Ember installment", due:4, stmt:"", mode:"auto", freq:"monthly", chan:"auto · HLB"},
+ {id:"ski_tnb", grp:"SKI home", nm:"Electric (TNB)", due:5, stmt:"6p", mode:"manual", freq:"monthly", chan:"TNB app"},
+ {id:"ski_wat", grp:"SKI home", nm:"Water", due:13, stmt:"11", mode:"manual", freq:"monthly", chan:"Air Selangor app"},
+ {id:"ski_ast", grp:"SKI home", nm:"Astro", due:17, stmt:"", mode:"auto", freq:"monthly", chan:"auto"},
+ {id:"ski_uni", grp:"SKI home", nm:"Unifi", due:11, stmt:"", mode:"auto", freq:"monthly", chan:"auto · TNG"},
+ {id:"hg_elec", grp:"The Henge", nm:"Electric (TNB)", due:4, stmt:"", mode:"tenant", freq:"monthly", chan:"tenant"},
+ {id:"hg_wat", grp:"The Henge", nm:"Water", due:26, stmt:"", mode:"tenant", freq:"monthly", chan:"tenant"},
+ {id:"hg_maint", grp:"The Henge", nm:"Maintenance", due:15, stmt:"?", mode:"manual", freq:"monthly", chan:"CSS Home app"},
+ {id:"hg_time", grp:"The Henge", nm:"TIME internet", due:8, stmt:"", mode:"auto", freq:"monthly", chan:"auto"},
+ {id:"hg_iwk", grp:"The Henge", nm:"Indah Water (sewerage)", due:28, stmt:"14p", mode:"manual", freq:"periodic6", dueMonths:[2,8], chan:"IWK / JomPAY 68502", info:"RM90/half (RM15×6) · by 31 Aug / 28 Feb"},
+ {id:"hg_quit", grp:"The Henge", nm:"Quit rent", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[5], chan:"e-Tanah portal", info:"RM20/yr · 2026 PAID"},
+ {id:"hg_dbkl", grp:"The Henge", nm:"DBKL assessment", due:28, stmt:"1p", mode:"manual", freq:"semiannual", dueMonths:[2,8], chan:"DBKL / JomPAY 6981", info:"RM276/half · RM271 now (RM5 credit) · by 31 Aug"},
+ {id:"hg_fire", grp:"The Henge", nm:"Fire insurance", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[12], chan:"bank"},
+ {id:"em_tnb", grp:"Ember", nm:"Electric (TNB)", due:8, stmt:"9p", mode:"manual", freq:"monthly", chan:"TNB app"},
+ {id:"em_wat", grp:"Ember", nm:"Water", due:27, stmt:"25", mode:"manual", freq:"monthly", chan:"Air Selangor app"},
+ {id:"em_iwk", grp:"Ember", nm:"Indah Water (sewerage)", due:14, stmt:"receipt", mode:"manual", freq:"periodic6", dueMonths:[1,7], chan:"IWK app / TNG", info:"CYCLE TBC (Henge is Feb/Aug)", outstanding:true},
+ {id:"em_vq", grp:"Ember", nm:"ViewQwest 300mbps", due:2, stmt:"", mode:"auto", freq:"monthly", chan:"auto · card"},
+ {id:"em_maint", grp:"Ember", nm:"Maintenance", due:15, stmt:"?", mode:"manual", freq:"monthly", chan:"neighbourhood+ app"},
+ {id:"em_fire", grp:"Ember", nm:"Fire insurance", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[12], chan:"bank / HLB loan"},
+ {id:"em_mbsa", grp:"Ember", nm:"MBSA assessment", due:28, stmt:"TBC", mode:"manual", freq:"semiannual", dueMonths:[2,8], chan:"MBSA app", info:"~RM283.68/half"},
+ {id:"sub_fit", grp:"Subscription", nm:"Anytime Fitness", due:1, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB"},
+ {id:"sub_net", grp:"Subscription", nm:"Netflix", due:25, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB Visa"},
+ {id:"sub_gomo", grp:"Subscription", nm:"Gomo Singapore", due:1, stmt:"", mode:"auto", freq:"monthly", chan:"auto · SG card"},
+ {id:"ins_ge", grp:"Insurance", nm:"Great Eastern", due:29, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB Quantum"},
+ {id:"ins_mazda", grp:"Insurance", nm:"Mazda road tax + insurance", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[5], chan:"MyEG / JPJ", info:"renews May"},
+];
+var TA_BILL_MAP={"Credit card": "Local Transfer", "Installment": "Installment", "SKI home": "Bill", "The Henge": "Bill", "Ember": "Bill", "Insurance": "Insurance", "Subscription": "__per_bill__"};
+var TA_BILL_PER_NAME={"Anytime Fitness": "Sports & Self-care", "Netflix": "Living", "Gomo Singapore": "Living"};
+
+// ---- Bills: YY's tick and note per month. Keys are bm_paid_<YYYY-MM> and
+// bm_note_<YYYY-MM>, unchanged from the standalone Bill Manager, so an export from
+// that app imports into this one untouched.
+// Account/reference numbers are NOT in this file -- the repo is public. YY
+// imports dev/ledger_app/ledger_accounts.json once; it lands here and stays
+// on the phone. Absent = the field simply does not show.
+var ACCTS = {};
+function loadAccts(){ try{ ACCTS = JSON.parse(localStorage.getItem('bm_accts_v1')||'{}'); }catch(e){ ACCTS = {}; } }
+function acctFor(id){ return ACCTS[id] || ''; }
+loadAccts();
+
+function bmLoad(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}'); }catch(e){ return {}; } }
+function bmSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ showToast('Could not save'); } }
+
+// Payments YY recorded before this app existed, carried from the Google Sheet
+// (snapshot 18 Jul 2026). Seeded ONCE and never over an existing value, so unticking
+// something here stays unticked.
+var BM_SEED = {
+ '2026-05':{paid:{cc_uob:1}, note:{cc_uob:'6/3 cimb rm14796.72'}},
+ '2026-06':{paid:{}, note:{cc_pbbv:'6/9 cimb rm8964.15', cc_pbbq:'6/9 cimb rm220', cc_uob:'6/30 cimb rm5493.64'}},
+ '2026-07':{paid:{ski_tnb:1,cc_pbbv:1,cc_pbbq:1,cc_dbs:1,em_tnb:1,ski_wat:1,em_iwk:1,hg_maint:1,em_maint:1,cc_citi:1,cc_uob:1,em_wat:1},
+            note:{ski_tnb:'7/5 cimb part of rm438.24', cc_pbbv:'6/23 cimb rm5366.08', cc_pbbq:'6/23 cimb rm220',
+                  cc_dbs:'7/14 dbs sgd632', em_tnb:'7/5 cimb part of rm438.24', ski_wat:'7/5 cimb rm16.90',
+                  em_iwk:'7/18 cimb rm45', hg_maint:'6/30 CSS rm319', em_maint:'7/5 dbs rm438.24',
+                  cc_citi:'7/9 dbs sgd131.07', cc_uob:'7/18 cimb rm2280.05', hg_elec:'6/12', em_wat:'7/5 AS rm16.90'}},
+ '2026-08':{paid:{cc_pbbv:1, hg_iwk:1}, note:{cc_pbbv:'7/18 rm10000 cimb'}}
+};
+(function seedBills(){
+  try{
+    if(localStorage.getItem('bm_seed_v1')) return;
+    Object.keys(BM_SEED).forEach(function(ym){
+      var p=bmLoad('bm_paid_'+ym), n=bmLoad('bm_note_'+ym), v=BM_SEED[ym];
+      Object.keys(v.paid).forEach(function(id){ if(p[id]===undefined) p[id]=true; });
+      Object.keys(v.note).forEach(function(id){ if(!n[id]) n[id]=v.note[id]; });
+      bmSave('bm_paid_'+ym,p); bmSave('bm_note_'+ym,n);
+    });
+    localStorage.setItem('bm_seed_v1','done');
+  }catch(e){}
+})();
+
+function bmKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function billsDue(d){ var m=d.getMonth()+1;
+  return BILLS.filter(function(b){ return b.freq==='monthly' || (b.dueMonths||[]).indexOf(m)>=0; }); }
+function billStatus(b, paid, isCur, today){
+  if(b.mode==='tenant') return 'tenant';
+  if(b.mode==='auto')   return 'auto';
+  if(paid)              return 'paid';
+  if(isCur && today > b.due)                      return 'over';
+  if(isCur && b.due-today<=3 && b.due>=today)     return 'due';
+  return 'up';
+}
+function taForBill(b){
+  var m = TA_BILL_MAP[b.grp];
+  if(m === '__per_bill__') return TA_BILL_PER_NAME[b.nm] || null;
+  return m || null;
+}
+
+function taCategory(id){ return TA_MAP[id] || null; }
+function taTip(id, label){
+  // Only show the tip when it tells YY something the button label does not. "Self-care"
+  // -> "Sports & Self-care" is not new information and would wrap to three lines on a
+  // 64px chip, so a TA name that already contains the label stays hidden.
+  var ta = taCategory(id);
+  if(!ta) return "ask in TA";
+  if(ta === label) return "";
+  // whole-word match only: "Self-care" IS a word inside "Sports & Self-care", but
+  // "Reno" is only a prefix of "Renovation" -- YY still needs to see which renovation.
+  var esc = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if(new RegExp('(^|\\s|&)' + esc + '($|\\s)', 'i').test(ta)) return "";
+  return ta;
+}
+
+// GENERATED from taxonomy.json (consumers.ledger_app_buttons).
+// regenerate: python3 tools/taxonomy_export.py app   --   do not hand-edit.
+// A button whose TA category is null lands in TA as Unidentified on purpose:
+// the app never guesses a category YY has not chosen.
+var EXPENSE_CATS = [
+  {id:"food",emoji:"\ud83c\udf54",label:"Food"},
+  {id:"groceries",emoji:"\ud83d\uded2",label:"Groceries"},
+  {id:"transport",emoji:"\ud83d\ude97",label:"Transport"},
+  {id:"shopping",emoji:"\ud83d\udecd\ufe0f",label:"Shopping"},
+  {id:"entertainment",emoji:"\ud83c\udfac",label:"Fun"},
+  {id:"selfcare",emoji:"\ud83d\udc86",label:"Self-care"},
+  {id:"living",emoji:"\ud83e\uddf4",label:"Living"},
+  {id:"health",emoji:"\ud83c\udfe5",label:"Health"},
+  {id:"bills",emoji:"\ud83e\uddfe",label:"Bills"},
+  {id:"housing",emoji:"\ud83c\udfd8\ufe0f",label:"Housing"},
+  {id:"travel",emoji:"\u2708\ufe0f",label:"Travel"},
+  {id:"reno",emoji:"\ud83d\udd28",label:"Reno"},
+  {id:"cash",emoji:"\ud83d\udcb5",label:"Cash"},
+  {id:"tax",emoji:"\ud83c\udfdb\ufe0f",label:"Tax"},
+  {id:"other",emoji:"\ud83d\udce6",label:"Other"}
+];
+var INCOME_CATS = [
+  {id:"salary",emoji:"\ud83d\udcb0",label:"Salary"},
+  {id:"investment",emoji:"\ud83d\udcc8",label:"Investing"},
+  {id:"sale",emoji:"\ud83c\udff7\ufe0f",label:"Sale"},
+  {id:"rent",emoji:"\ud83c\udfd8\ufe0f",label:"Rent"},
+  {id:"gift",emoji:"\ud83c\udf81",label:"Gift"},
+  {id:"other_income",emoji:"\ud83d\udcb5",label:"Other"}
+];
+var TA_MAP = {
+  "food": "Meal",
+  "groceries": "Meal",
+  "transport": "Transport",
+  "shopping": "Shopping",
+  "entertainment": "Shopping",
+  "selfcare": "Sports & Self-care",
+  "living": "Living",
+  "health": "Medical",
+  "bills": "Bill",
+  "housing": "Bill",
+  "travel": "Travel",
+  "reno": "Ember Renovation",
+  "cash": "Cash",
+  "tax": "Tax",
+  "other": null,
+  "salary": "Salary",
+  "investment": "Dividend",
+  "sale": "Second Hand Sale",
+  "rent": "House Rent",
+  "gift": null,
+  "other_income": null
+};
+// Grouped by real instrument (replaced the old generic Cash/Card/Bank/E-wallet
+// buckets). `placeholder:true` = account confirmed but details (last 4, etc.)
+// not supplied yet — still selectable, just visually muted.
+var PAY_METHOD_GROUPS = [
+  {label:'Credit Card', icon:'💳', items:[
+    {id:'dbs_alt',  label:'DBS Alt'},
+    {id:'citi_pm',  label:'Citi PM'},
+    {id:'pbb_visa', label:'PBB Visa'},
+    {id:'uob_mc',   label:'UOB MC'},
+    {id:'mbb_amex', label:'MBB Amex'},
+    {id:'hlb_wise', label:'HLB Wise', placeholder:true},
+  ]},
+  {label:'Bank', icon:'🏦', items:[
+    {id:'cimb_my',   label:'CIMB MY'},
+    {id:'hlb_pay',   label:'HLB Pay'},
+    {id:'rhb_ca',    label:'RHB C/A'},
+    {id:'mbb_sav',   label:'MBB Sav'},
+    {id:'hlb_ember', label:'HLB Ember'},
+    {id:'dbs_sg',    label:'DBS SG'},
+    {id:'cimb_sg',   label:'CIMB SG'},
+  ]},
+  {label:'E-wallet', icon:'📱', items:[
+    {id:'tng',     label:'TnG'},
+    {id:'grabpay', label:'GrabPay'},
+  ]},
+];
+// Flat lookup: id -> {id,label,emoji,group} — `emoji` (not `icon`) to match
+// the shape category objects already use, since tx.payMethod is rendered the
+// same way tx.category is (txRowHTML, the .md export).
+var PAY_METHODS_BY_ID = {};
+PAY_METHOD_GROUPS.forEach(function(g){
+  g.items.forEach(function(it){
+    PAY_METHODS_BY_ID[it.id] = {id:it.id, label:it.label, emoji:g.icon, group:g.label, placeholder:!!it.placeholder};
+  });
+});
+
+var plusSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+var listSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
+var billSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 3v18l2-1.5L8 21l2-1.5L12 21l2-1.5L16 21l2-1.5L20 21V3z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+var chartSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>';
+var backspaceSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>';
+var pencilSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+
+function todayStr(){
+  // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
+  // toISOString() (always UTC) reads back today's LOCAL date.
+  var d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+
+var state = {
+  tab:'add', type:'expense', amount:'0', currency:'MYR', category:null, payMethod:null, note:'',
+  date: todayStr(),
+  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false, infoSheetOpen:false, taSheetOpen:false, billOpen:null, editing:null
+};
+var pendingDelete = null;
+var undoTimer = null;
+var toastTimer = null;
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+async function loadData(){
+  try{
+    var raw = localStorage.getItem('ledger-data');
+    if(raw){
+      var parsed = JSON.parse(raw);
+      state.transactions = parsed.transactions || [];
+      state.currency = parsed.defaultCurrency || 'MYR';
+    }
+  }catch(e){ /* no data yet on first run */ }
+  state.loading = false;
+  render();
+}
+
+async function persist(){
+  try{
+    localStorage.setItem('ledger-data', JSON.stringify({defaultCurrency: state.currency, transactions: state.transactions}));
+  }catch(e){ showToast('Could not save'); }
+}
+
+// --- Import: restore from a previously-exported ledger_YYYY-MM.md (or a
+// raw .json with the same {transactions:[...]} shape). This is the recovery
+// half of Export — the only real defense against a wiped/reinstalled icon.
+
+function extractTransactionsFromText(text){
+  var m = text.match(/```json\s*([\s\S]*?)```/);
+  var raw = m ? m[1] : text;
+  var data = JSON.parse(raw);
+  var list = Array.isArray(data) ? data : data.transactions;
+  if(!Array.isArray(list)) throw new Error('no transactions[] found');
+  return list;
+}
+
+function mergeTransactions(list){
+  var seen = {};
+  state.transactions.forEach(function(t){ if(t.id) seen[t.id] = true; });
+  var added = 0, skipped = 0;
+  list.forEach(function(t){
+    if(!t || !t.id || seen[t.id]){ skipped++; return; }
+    seen[t.id] = true;
+    state.transactions.push(t);
+    added++;
+  });
+  sortTransactions();
+  return {added: added, skipped: skipped};
+}
+
+
+// Restore bill ticks and notes from an export. MERGES: an existing tick or note is
+// never overwritten, only missing ones are filled, so re-importing the same file twice
+// changes nothing. Accepts this app's export and the standalone Bill Manager's.
+function mergeBills(text){
+  var added = {ticks:0, notes:0};
+  var m = text.match(/```json\s*([\s\S]*?)```/);
+  if(!m) return added;
+  var data;
+  try{ data = JSON.parse(m[1]); }catch(e){ return added; }
+  var months = data.bills || (data.months && !data.transactions ? data.months : null);
+  if(!months) return added;
+  Object.keys(months).forEach(function(ym){
+    if(!/^\d{4}-\d{2}$/.test(ym)) return;
+    var inc = months[ym] || {};
+    var p = bmLoad('bm_paid_'+ym), n = bmLoad('bm_note_'+ym);
+    Object.keys(inc.paid||{}).forEach(function(id){
+      if(p[id]===undefined){ p[id]=inc.paid[id]; added.ticks++; }
+    });
+    Object.keys(inc.note||{}).forEach(function(id){
+      if(!n[id]){ n[id]=inc.note[id]; added.notes++; }
+    });
+    bmSave('bm_paid_'+ym,p); bmSave('bm_note_'+ym,n);
+  });
+  return added;
+}
+
+function triggerImport(){
+  var input = document.getElementById('importFile');
+  if(input) input.click();
+}
+
+function handleImportFile(ev){
+  var file = ev.target.files && ev.target.files[0];
+  ev.target.value = ''; // reset so re-picking the same file later still fires onchange
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = async function(){
+    try{
+      var text = String(reader.result);
+      var res = {added:0, skipped:0};
+      try{ res = mergeTransactions(extractTransactionsFromText(text)); }
+      catch(e){ /* a bills-only export has no transactions[] -- that is fine */ }
+      var bres = mergeBills(text);
+      var accts = 0;
+      try{
+        var j = JSON.parse(text);
+        if(j && j.accounts && typeof j.accounts === 'object'){
+          var cur = {}; try{ cur = JSON.parse(localStorage.getItem('bm_accts_v1')||'{}'); }catch(e){}
+          Object.keys(j.accounts).forEach(function(k){ cur[k] = j.accounts[k]; accts++; });
+          localStorage.setItem('bm_accts_v1', JSON.stringify(cur));
+          loadAccts();
+        }
+      }catch(e){ /* not JSON, or no accounts block -- normal for a .md export */ }
+      await persist();
+      render();
+      var bits = [];
+      if(res.added || !bres.ticks && !bres.notes) bits.push(res.added + ' txn');
+      if(bres.ticks) bits.push(bres.ticks + ' tick');
+      if(bres.notes) bits.push(bres.notes + ' note');
+      if(accts) bits = [accts + (accts===1 ? ' account' : ' accounts')];
+      showToast(bits.join(' &middot; ') + ' imported' +
+                (res.skipped ? ' &middot; ' + res.skipped + ' already had' : ''));
+    }catch(e){
+      showToast('Import failed — not a Ledger export file');
+    }
+  };
+  reader.onerror = function(){ showToast('Import failed — could not read that file'); };
+  reader.readAsText(file);
+}
+
+function showToast(msg){
+  var el = document.getElementById('toast');
+  if(!el) return;
+  el.innerHTML = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2000);
+}
+
+function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; state.taSheetOpen = false; state.billOpen = null; render(); }
+
+function setType(type){
+  if(state.type === type) return;
+  state.type = type;
+  state.category = null;
+  render();
+}
+
+function pressDigit(d){
+  if(state.amount === '0' && d !== '.'){
+    state.amount = d;
+  } else if(d === '.' && state.amount.includes('.')){
+    return;
+  } else {
+    if(state.amount.includes('.')){
+      var dec = state.amount.split('.')[1];
+      if(dec && dec.length >= 2) return;
+    }
+    if(state.amount.replace('.','').length >= 9) return;
+    state.amount += d;
+  }
+  updateAmountDisplay();
+  updateSaveButtonState();
+}
+function pressBackspace(){
+  state.amount = state.amount.length > 1 ? state.amount.slice(0,-1) : '0';
+  if(state.amount === '') state.amount = '0';
+  updateAmountDisplay();
+  updateSaveButtonState();
+}
+function updateAmountDisplay(){
+  var el = document.getElementById('amountVal');
+  if(el) el.textContent = state.amount;
+}
+function updateSaveButtonState(){
+  var btn = document.getElementById('saveBtn');
+  if(!btn) return;
+  var amt = parseFloat(state.amount);
+  // A jot with no amount is allowed, so long as it says WHAT and PAID HOW -- that is
+  // exactly what TA needs to match it to a bank row later.
+  btn.disabled = !(state.category && state.payMethod);
+  btn.textContent = (state.editing ? 'Update ' : (amt > 0 ? 'Save ' : 'Jot ')) +
+                    (state.type === 'expense' ? 'Expense' : 'Income') +
+                    (amt > 0 ? '' : ' — amount unknown');
+}
+
+function selectCategory(id){ state.category = id; render(); }
+function selectPayMethod(id){
+  state.payMethod = PAY_METHODS_BY_ID[id] || null;
+  state.pmSheetOpen = false;
+  render();
+}
+function openPmSheet(){ state.pmSheetOpen = true; render(); }
+function closePmSheet(){ state.pmSheetOpen = false; render(); }
+
+function openInfoSheet(){ state.infoSheetOpen = true; render(); }
+function closeInfoSheet(){ state.infoSheetOpen = false; render(); }
+
+// Most-recently-used distinct pay methods, newest first (transactions are
+// stored newest-first already). Caps at 3 so the inline row stays compact;
+// anything else is one tap away via the "More" chip / full sheet.
+function mruPayMethods(){
+  var seen = {}, out = [];
+  for(var i=0;i<state.transactions.length && out.length<3;i++){
+    var pm = state.transactions[i].payMethod;
+    if(pm && !seen[pm.id]){ seen[pm.id]=true; out.push(pm); }
+  }
+  return out;
+}
+
+function openCurrencySheet(){ state.currencySheetOpen = true; render(); }
+function closeCurrencySheet(){ state.currencySheetOpen = false; render(); }
+function selectCurrency(code){ state.currency = code; state.currencySheetOpen = false; persist(); render(); }
+
+// Selected calendar date (state.date, for backdating) + the real current
+// time-of-day, as a local Date -> ISO string. Keeps history sorting sane —
+// backdated entries land on the right day, not "just now" at the top.
+function combinedDateISO(){
+  var now = new Date();
+  var parts = state.date.split('-').map(Number);
+  var d = new Date(parts[0], parts[1]-1, parts[2], now.getHours(), now.getMinutes(), now.getSeconds());
+  return d.toISOString();
+}
+
+// Transactions must stay sorted newest-first: mruPayMethods() and the
+// History grouping both assume it, and backdating breaks plain unshift/push
+// ordering.
+function sortTransactions(){
+  state.transactions.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+}
+
+async function saveTransaction(){
+  var amt = parseFloat(state.amount);
+  // An amount of 0 is saved as UNKNOWN, not as zero. They are different facts: "this
+  // happened but I do not know the figure yet" vs "this cost nothing". Storing 0 for
+  // both would put a fake zero into TA's totals and there would be no way to find the
+  // rows still waiting for a number. amount stays null and amountUnknown flags it.
+  var unknown = !(amt > 0);
+  if(!state.category) return;
+  if(unknown && !state.payMethod) return;   // a jot is only useful with a pay channel
+  var catList = state.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
+  var cat = catList.find(function(c){ return c.id === state.category; });
+
+  if(state.editing){
+    var ex = state.transactions.filter(function(t){ return t.id === state.editing; })[0];
+    if(ex){
+      ex.type = state.type;
+      ex.amount = unknown ? null : amt;
+      ex.amountUnknown = unknown;
+      ex.currency = state.currency;
+      ex.category = cat;
+      ex.payMethod = state.payMethod;
+      ex.note = state.note.trim();
+      ex.date = combinedDateISO();
+      ex.editedAt = new Date().toISOString();
+    }
+    sortTransactions();
+    await persist();
+    clearEntry();
+    state.tab = 'history';
+    render();
+    showToast(unknown ? 'Updated — amount still unknown' : 'Updated');
+    return;
+  }
+
+  var tx = {
+    id: 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    type: state.type, amount: unknown ? null : amt, amountUnknown: unknown,
+    currency: state.currency,
+    category: cat, payMethod: state.payMethod, note: state.note.trim(), date: combinedDateISO()
+  };
+  state.transactions.push(tx);
+  sortTransactions();
+  await persist();
+  clearEntry();
+  render();
+  showToast(unknown ? 'Jotted — add the amount later' : 'Saved');
+}
+
+function clearEntry(){
+  state.amount = '0'; state.note = ''; state.category = null;
+  state.payMethod = null; state.date = todayStr(); state.editing = null;
+}
+
+// Load an existing row back into the Add screen. This is how an unknown amount gets
+// filled in once the statement arrives -- jot it now, complete it later.
+function editTx(id){
+  var t = state.transactions.filter(function(x){ return x.id === id; })[0];
+  if(!t) return;
+  state.editing = id;
+  state.tab = 'add';
+  state.type = t.type;
+  state.amount = (t.amountUnknown || t.amount == null) ? '0' : String(t.amount);
+  state.currency = t.currency;
+  state.category = t.category ? t.category.id : null;
+  state.payMethod = t.payMethod || null;
+  state.note = t.note || '';
+  state.date = String(t.date).slice(0,10);
+  render();
+}
+function cancelEdit(){ clearEntry(); state.tab = 'history'; render(); }
+
+function deleteTx(id){
+  var idx = state.transactions.findIndex(function(t){ return t.id === id; });
+  if(idx === -1) return;
+  pendingDelete = {tx: state.transactions[idx], idx: idx};
+  state.transactions.splice(idx,1);
+  persist();
+  render();
+  showToast('Deleted <button class="undo-btn" onclick="undoDelete()">Undo</button>');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(function(){ pendingDelete = null; }, 4000);
+}
+function undoDelete(){
+  if(!pendingDelete) return;
+  state.transactions.splice(pendingDelete.idx, 0, pendingDelete.tx);
+  pendingDelete = null;
+  clearTimeout(undoTimer);
+  document.getElementById('toast').classList.remove('show');
+  persist();
+  render();
+}
+
+function dateLabel(iso){
+  var d = new Date(iso);
+  var now = new Date();
+  var startOfDay = function(x){ return new Date(x.getFullYear(), x.getMonth(), x.getDate()); };
+  var diffDays = Math.round((startOfDay(now) - startOfDay(d)) / 86400000);
+  if(diffDays === 0) return 'Today';
+  if(diffDays === 1) return 'Yesterday';
+  return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined});
+}
+function groupByDate(list){
+  var map = new Map();
+  for(var i=0;i<list.length;i++){
+    var t = list[i];
+    var label = dateLabel(t.date);
+    if(!map.has(label)) map.set(label, []);
+    map.get(label).push(t);
+  }
+  return Array.from(map.entries()).map(function(e){ return {label: e[0], items: e[1]}; });
+}
+function currencyTotals(){
+  var totals = {};
+  for(var i=0;i<state.transactions.length;i++){
+    var t = state.transactions[i];
+    if(!totals[t.currency]) totals[t.currency] = {income:0, expense:0, pending:0};
+    if(t.amountUnknown || t.amount == null){ totals[t.currency].pending++; continue; }
+    totals[t.currency][t.type] += t.amount;
+  }
+  return totals;
+}
+
+function monthKey(iso){
+  var d = new Date(iso);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+async function exportMonth(){
+  var now = new Date();
+  var defaultYm = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var ym = window.prompt('Export which month? (YYYY-MM)', defaultYm);
+  if(!ym) return;
+  var list = state.transactions.filter(function(t){ return monthKey(t.date) === ym; });
+  if(list.length === 0){ showToast('No entries for ' + ym); return; }
+  list = list.slice().sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+
+  var totals = {};
+  list.forEach(function(t){
+    if(!totals[t.currency]) totals[t.currency] = {income:0, expense:0, pending:0};
+    // forEach callback -- `return` skips this entry, `continue` would be illegal here.
+    if(t.amountUnknown || t.amount == null){ totals[t.currency].pending++; return; }
+    totals[t.currency][t.type] += t.amount;
+  });
+
+  var rows = list.map(function(t){
+    var d = new Date(t.date);
+    var dateStr = d.toISOString().slice(0,10);
+    var timeStr = d.toTimeString().slice(0,5);
+    var sym = CURRENCIES[t.currency] || t.currency;
+    var amt = (t.amountUnknown || t.amount == null)
+      ? sym + ' ? (amount not known — jotted for TA to match)'
+      : (t.type==='expense'?'-':'+') + sym + t.amount.toFixed(2);
+    return '| ' + dateStr + ' | ' + timeStr + ' | ' + (t.type==='expense'?'Expense':'Income') + ' | ' +
+      t.category.label + ' | ' + (t.payMethod ? t.payMethod.label : '') + ' | ' + amt + ' | ' +
+      (t.note ? t.note.replace(/\|/g,'/') : '') + ' |';
+  }).join('\n');
+
+  var totalsLines = Object.keys(totals).map(function(c){
+    var t = totals[c]; var net = t.income - t.expense;
+    return '- **' + c + '**: income +' + t.income.toFixed(2) + ', expense -' + t.expense.toFixed(2) +
+      ', net ' + (net>=0?'+':'') + net.toFixed(2);
+  }).join('\n');
+
+  var generated = new Date().toISOString();
+  // Each entry carries the TA category it maps to, so TA never has to translate this
+  // app's button names. null = TA will surface it as Unidentified for YY.
+  var listForExport = list.map(function(t){
+    var o = {}; for(var k in t) o[k] = t[k];
+    // t.category is the stored category OBJECT {id,emoji,label}, not an id string --
+    // passing the object gave every exported row ta_category:null from P6 until
+    // 2026-08-25. Caught only by exporting a row saved through the real save path.
+    o.ta_category = taCategory(t.category && t.category.id ? t.category.id : t.category);
+    return o;
+  });
+  // Bills travel in the SAME file as the transactions -- one export is the whole
+  // backup, so there is never a half-restored device. Keys are unchanged
+  // (bm_paid_<YYYY-MM> / bm_note_<YYYY-MM>), so an export from the standalone Bill
+  // Manager still imports here and vice versa.
+  var billsOut = {};
+  try{
+    for(var bi=0; bi<localStorage.length; bi++){
+      var lk = localStorage.key(bi);
+      var bmm = /^bm_(paid|note)_(\d{4}-\d{2})$/.exec(lk);
+      if(!bmm) continue;
+      billsOut[bmm[2]] = billsOut[bmm[2]] || {paid:{}, note:{}};
+      billsOut[bmm[2]][bmm[1]] = JSON.parse(localStorage.getItem(lk)||'{}');
+    }
+  }catch(e){}
+  var nTick = 0, nNote = 0;
+  Object.keys(billsOut).forEach(function(k){
+    nTick += Object.keys(billsOut[k].paid||{}).filter(function(i){return billsOut[k].paid[i];}).length;
+    nNote += Object.keys(billsOut[k].note||{}).filter(function(i){return billsOut[k].note[i];}).length;
+  });
+  var jsonBlock = JSON.stringify({month: ym, generated: generated, schema: 'ledger-app/3',
+    taxonomy: 'i001 taxonomy.json 2026-08-22', transactions: listForExport, totals: totals,
+    bills: billsOut, bill_register: BILLS.length}, null, 2);
+
+  var md = '# Ledger — ' + ym + '\n\n' +
+    'Generated ' + generated + ' from the Ledger phone app. ' + list.length + ' entries.\n\n' +
+    '| Date | Time | Type | Category | Pay method | Amount | Note |\n' +
+    '|---|---|---|---|---|---|---|\n' +
+    rows + '\n\n' +
+    '**Totals**\n\n' + totalsLines + '\n\n' +
+    (Object.keys(billsOut).length
+      ? '## Bills — payment record\n\n' + nTick + ' paid tick(s), ' + nNote +
+        ' note(s), against a ' + BILLS.length + '-bill register.\n\n' +
+        '| Month | Bill | Paid | Note |\n|---|---|---|---|\n' +
+        Object.keys(billsOut).sort().map(function(k){
+          var d=billsOut[k], seen={}, out=[];
+          Object.keys(d.paid||{}).forEach(function(i){seen[i]=1;});
+          Object.keys(d.note||{}).forEach(function(i){seen[i]=1;});
+          Object.keys(seen).sort().forEach(function(id){
+            var b=null; for(var q=0;q<BILLS.length;q++) if(BILLS[q].id===id) b=BILLS[q];
+            out.push('| '+k+' | '+(b?b.nm:id)+' | '+((d.paid||{})[id]?'PAID':'')+' | '+
+                     String((d.note||{})[id]||'').replace(/\|/g,'/')+' |');
+          });
+          return out.join('\n');
+        }).join('\n') + '\n\n'
+      : '') +
+    '<details><summary>Raw data (for machine parsing — reconcile against the totals above)</summary>\n\n' +
+    '```json\n' + jsonBlock + '\n```\n\n</details>\n';
+
+  var filename = 'ledger_' + ym + '.md';
+  var blob = new Blob([md], {type:'text/markdown'});
+
+  if(navigator.share && navigator.canShare){
+    try{
+      var file = new File([blob], filename, {type:'text/markdown'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title: filename});
+        showToast('Exported');
+        return;
+      }
+    }catch(e){ /* user cancelled share, or unsupported — fall through to direct download */ }
+  }
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  showToast('Saved to Downloads');
+}
+
+function categoryRowHTML(){
+  var cats = state.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
+  return '<div class="cat-row">' + cats.map(function(c){
+    var tip = taTip(c.id, c.label);
+    return '<button class="cat-chip ' + (state.category === c.id ? 'selected' : '') + '" onclick="selectCategory(\'' + c.id + '\')">' +
+      '<span class="cat-bubble">' + c.emoji + '</span>' +
+      '<span class="cat-label">' + c.label + '</span>' +
+      (tip ? '<span class="cat-ta">' + escapeHtml(tip) + '</span>' : '<span class="cat-ta">&nbsp;</span>') +
+      '</button>';
+  }).join('') + '</div>';
+}
+
+// Inline row = the 3 most-recently-used methods (chosen 2026-08-20, Option A)
+// plus the current selection if it isn't already one of those, plus a "More"
+// chip that opens the full grouped sheet for the other 12+.
+function payMethodRowHTML(){
+  var mru = mruPayMethods();
+  var cur = state.payMethod;
+  if(cur && !mru.some(function(p){ return p.id === cur.id; })) mru = [cur].concat(mru);
+  var chips = mru.map(function(p){
+    var sel = cur && cur.id === p.id ? ' selected' : '';
+    return '<button class="pm-chip' + sel + '" onclick="selectPayMethod(\'' + p.id + '\')">' +
+      '<span>' + p.emoji + '</span><span class="pm-label">' + p.label + '</span></button>';
+  }).join('');
+  chips += '<button class="pm-chip more" onclick="openPmSheet()"><span>&#8943;</span><span class="pm-label">More</span></button>';
+  return '<div class="pm-row">' + chips + '</div>';
+}
+
+function pmSheetHTML(){
+  var body = PAY_METHOD_GROUPS.map(function(g){
+    return '<div class="pm-group-label">' + escapeHtml(g.label) + '</div><div class="pm-grid">' +
+      g.items.map(function(it){
+        var sel = state.payMethod && state.payMethod.id === it.id ? ' selected' : '';
+        var ph = it.placeholder ? ' placeholder' : '';
+        return '<button class="pm-item' + sel + ph + '" onclick="selectPayMethod(\'' + it.id + '\')">' +
+          '<span class="pm-icon">' + g.icon + '</span><span class="pm-label">' + escapeHtml(it.label) + '</span></button>';
+      }).join('') + '</div>';
+  }).join('');
+  return '<div class="sheet-backdrop" onclick="closePmSheet()">' +
+    '<div class="sheet" onclick="event.stopPropagation()">' +
+      '<div class="sheet-handle"></div><div class="sheet-title">Pay method</div>' +
+      body +
+    '</div></div>';
+}
+
+function keypadHTML(){
+  var keys = ['1','2','3','4','5','6','7','8','9','.','0','back'];
+  return '<div class="keypad">' + keys.map(function(k){
+    if(k === 'back') return '<button class="key" onclick="pressBackspace()">' + backspaceSvg + '</button>';
+    return '<button class="key" onclick="pressDigit(\'' + k + '\')">' + k + '</button>';
+  }).join('') + '</div>';
+}
+
+// Shared across both screens' headers: the (i) info button, and the hidden
+// file input Import uses (only one instance exists at a time — render()
+// replaces #root's whole innerHTML each call).
+function infoButtonHTML(){
+  return '<button class="info-btn" onclick="openInfoSheet()" aria-label="Where your data lives">&#9432;</button>';
+}
+function importInputHTML(){
+  return '<input type="file" id="importFile" accept=".md,.markdown,.json,text/markdown,text/plain,application/json" style="display:none" onchange="handleImportFile(event)">';
+}
+
+function addScreenHTML(){
+  var typeLabel = state.type === 'expense' ? 'Expense' : 'Income';
+  return '<div class="add-screen">' +
+    importInputHTML() +
+    '<div class="app-header"><div class="brand">Ledger</div>' +
+    '<div class="header-actions">' + infoButtonHTML() +
+    '<button class="currency-pill" onclick="openCurrencySheet()">' + state.currency + ' ▾</button></div></div>' +
+    '<div class="date-row"><input type="date" class="date-input" value="' + state.date + '" max="' + todayStr() + '" onchange="state.date=this.value||todayStr();"></div>' +
+    '<div class="segmented">' +
+      '<button class="' + (state.type==='expense' ? 'active expense' : '') + '" onclick="setType(\'expense\')">Expense</button>' +
+      '<button class="' + (state.type==='income' ? 'active income' : '') + '" onclick="setType(\'income\')">Income</button>' +
+    '</div>' +
+    (state.editing ? '<div class="editing-bar">Editing an earlier entry' +
+       '<button onclick="cancelEdit()">Cancel</button></div>' : '') +
+    '<div class="amount-wrap"><div class="amount-row">' +
+      '<span class="amount-symbol">' + CURRENCIES[state.currency] + '</span>' +
+      '<span class="amount" id="amountVal">' + state.amount + '</span>' +
+    '</div></div>' +
+    '<div class="cat-head"><span class="cat-head-l">Category</span><button class="ta-btn" onclick="openTaSheet()">= TA category</button></div>' +
+    categoryRowHTML() +
+    payMethodRowHTML() +
+    '<div class="note-wrap"><input class="note-input" placeholder="Add a note (optional)" value="' + escapeHtml(state.note) + '" oninput="state.note=this.value" /></div>' +
+    '<div class="spacer"></div>' +
+    keypadHTML() +
+    '<button class="save-btn" id="saveBtn" onclick="saveTransaction()">Save ' + typeLabel + '</button>' +
+  '</div>';
+}
+
+function txRowHTML(t){
+  var sym = CURRENCIES[t.currency] || t.currency;
+  var time = new Date(t.date).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  return '<div class="tx-row' + (t.amountUnknown || t.amount == null ? ' pending' : '') + '">' +
+    '<div class="tx-bubble">' + t.category.emoji + '</div>' +
+    '<div class="tx-info"><div class="tx-cat">' + t.category.label +
+    (t.payMethod ? ' <span class="tx-pm">' + t.payMethod.emoji + '</span>' : '') + '</div>' +
+    (t.note ? '<div class="tx-note">' + escapeHtml(t.note) + '</div>' : '') + '</div>' +
+    '<div class="tx-right">' +
+      (t.amountUnknown || t.amount == null
+        ? '<div class="tx-amount unknown">' + sym + ' ?</div>'
+        : '<div class="tx-amount ' + t.type + '">' + (t.type==='expense'?'−':'+') + sym + t.amount.toFixed(2) + '</div>') +
+      '<div class="tx-time">' + time + '</div></div>' +
+    '<button class="tx-edit" onclick="editTx(\'' + t.id + '\')" aria-label="Edit">' + pencilSvg + '</button>' +
+    '<button class="tx-del" onclick="deleteTx(\'' + t.id + '\')" aria-label="Delete">' + trashSvg + '</button>' +
+  '</div>';
+}
+
+function historyScreenHTML(){
+  if(state.transactions.length === 0){
+    return '<div class="history-screen" style="flex:1;display:flex;flex-direction:column;">' +
+      importInputHTML() +
+      '<div class="app-header"><div class="brand">Ledger</div>' +
+      '<div class="header-actions">' + infoButtonHTML() +
+      '<button class="export-btn import-btn" onclick="triggerImport()">Import</button></div></div>' +
+      '<div class="empty-state"><div class="empty-emoji">🪙</div>' +
+      '<div class="empty-title">No transactions yet</div>' +
+      '<div class="empty-sub">Log your first one from the Add tab, or Import a previous export.</div>' +
+      '<button class="empty-cta" onclick="switchTab(\'add\')">Add a transaction</button></div></div>';
+  }
+  var totals = currencyTotals();
+  var groups = groupByDate(state.transactions);
+  var balanceHTML = Object.keys(totals).map(function(code){
+    var t = totals[code];
+    var net = t.income - t.expense;
+    var sym = CURRENCIES[code] || code;
+    return '<div class="balance-card"><div class="balance-currency">' + code + '</div>' +
+      '<div class="balance-amount ' + (net>=0?'pos':'neg') + '">' + (net>=0?'+':'−') + sym + Math.abs(net).toFixed(2) + '</div>' +
+      '<div class="balance-sub"><span class="pos">+' + sym + t.income.toFixed(2) + '</span><span class="neg">−' + sym + t.expense.toFixed(2) + '</span>' +
+      (t.pending ? '<span class="pend">' + t.pending + ' unpriced</span>' : '') + '</div></div>';
+  }).join('');
+  var listHTML = groups.map(function(g){
+    return '<div class="date-label">' + g.label + '</div>' + g.items.map(txRowHTML).join('');
+  }).join('');
+  return '<div class="history-screen">' +
+    importInputHTML() +
+    '<div class="app-header"><div class="brand">Ledger</div>' +
+    '<div class="header-actions">' + infoButtonHTML() +
+    '<button class="export-btn import-btn" onclick="triggerImport()">Import</button>' +
+    '<button class="export-btn" onclick="exportMonth()">Export</button></div></div>' +
+    '<div class="balance-row">' + balanceHTML + '</div>' +
+    '<div class="tx-list">' + listHTML + '</div>' +
+  '</div>';
+}
+
+// The i004 NASDAQ daily card. Same origin (cyyaddsg-git.github.io), rebuilt by
+// i004's own GitHub Action at 21:00 SGT weekdays -- embedding it means this app
+// never needs a rebuild when the card changes.
+var MARKET_URL = 'https://cyyaddsg-git.github.io/i004-market-bars/';
+var marketNonce = 0;
+function reloadMarket(){ marketNonce++; render(); showToast('Reloading card'); }
+
+function marketScreenHTML(){
+  return '<div class="market-screen">' +
+    '<div class="app-header"><div class="brand">Market</div>' +
+    '<div class="header-actions">' +
+      '<button class="export-btn import-btn" onclick="reloadMarket()">Reload</button>' +
+      '<button class="export-btn" onclick="window.open(MARKET_URL,\'_blank\')">Open</button>' +
+    '</div></div>' +
+    '<iframe class="market-frame" src="' + MARKET_URL + (marketNonce ? '?r=' + marketNonce : '') + '" ' +
+      'title="NASDAQ daily card" referrerpolicy="no-referrer"></iframe>' +
+    '<div class="market-note">Advice only &middot; rebuilt 21:00 SGT weekdays. Blank means the card has not run yet, or you are offline.</div>' +
+  '</div>';
+}
+
+function tabbarHTML(){
+  return '<div class="tabbar">' +
+    '<button class="' + (state.tab==='add'?'active':'') + '" onclick="switchTab(\'add\')">' + plusSvg + '<span>Add</span></button>' +
+    '<button class="' + (state.tab==='history'?'active':'') + '" onclick="switchTab(\'history\')">' + listSvg + '<span>History</span></button>' +
+    '<button class="' + (state.tab==='bills'?'active':'') + '" onclick="switchTab(\'bills\')">' + billSvg + '<span>Bills</span></button>' +
+    '<button class="' + (state.tab==='market'?'active':'') + '" onclick="switchTab(\'market\')">' + chartSvg + '<span>Market</span></button>' +
+  '</div>';
+}
+
+function currencySheetHTML(){
+  var items = Object.keys(CURRENCIES).map(function(code){
+    return '<button class="sheet-item ' + (state.currency===code?'selected':'') + '" onclick="selectCurrency(\'' + code + '\')">' +
+      '<span class="sheet-sym">' + CURRENCIES[code] + '</span><span class="sheet-code">' + code + '</span></button>';
+  }).join('');
+  return '<div class="sheet-backdrop" onclick="closeCurrencySheet()">' +
+    '<div class="sheet" onclick="event.stopPropagation()">' +
+      '<div class="sheet-handle"></div><div class="sheet-title">Currency</div>' +
+      '<div class="sheet-list">' + items + '</div>' +
+    '</div></div>';
+}
+
+
+// Full button -> TA category reference. The chips carry a one-word tip; this is the
+// whole table in one place, generated from the same TA_MAP so it can never disagree.
+function taSheetHTML(){
+  function block(title, cats){
+    return '<div class="pm-group-label">' + title + '</div>' +
+      cats.map(function(c){
+        var ta = taCategory(c.id);
+        var right = ta
+          ? '<span class="ta-to">' + escapeHtml(ta) + '</span>'
+          : '<span class="ta-to open">Unidentified &mdash; you decide in TA</span>';
+        return '<div class="ta-row"><span class="ta-from">' + c.emoji + ' ' +
+          escapeHtml(c.label) + '</span><span class="ta-arrow">&rarr;</span>' + right + '</div>';
+      }).join('');
+  }
+  return '<div class="sheet-backdrop" onclick="closeTaSheet()">' +
+    '<div class="sheet" onclick="event.stopPropagation()">' +
+      '<div class="sheet-handle"></div>' +
+      '<div class="sheet-title">What each button becomes in TA</div>' +
+      '<div class="ta-note">Your buttons keep their short names. This is the category ' +
+      'TA files them under when you Export &mdash; nothing is translated by hand.</div>' +
+      block('Expense', EXPENSE_CATS) + block('Income', INCOME_CATS) +
+      '<div class="ta-note">Three buttons map to nothing on purpose: <b>Other</b>, ' +
+      '<b>Gift</b> and <b>Other</b> (income). TA surfaces those for you to categorise ' +
+      'rather than guessing.</div>' +
+    '</div></div>';
+}
+function openTaSheet(){ state.taSheetOpen = true; render(); }
+function closeTaSheet(){ state.taSheetOpen = false; render(); }
+
+
+// ================= Bills tab =================================================
+// Phone-first on purpose. The standalone Bill Manager rendered a 9-column sortable
+// table -- fine on a laptop, useless on a phone, and the same shape as the Google
+// Sheet YY called unfriendly. What matters on a phone is: what is due, what is late,
+// one tap to tick. Account number and pay channel move into the detail sheet.
+var billMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+function shiftBillMonth(n){
+  billMonth = new Date(billMonth.getFullYear(), billMonth.getMonth()+n, 1);
+  render();
+}
+function toggleBill(id){
+  var k='bm_paid_'+bmKey(billMonth), s=bmLoad(k);
+  s[id] = !s[id]; bmSave(k,s);
+  showToast(s[id] ? 'Marked paid' : 'Unticked');
+  render();
+}
+function openBill(id){ state.billOpen = id; render(); }
+function closeBill(){ state.billOpen = null; render(); }
+function setBillNote(id, v){
+  var k='bm_note_'+bmKey(billMonth), n=bmLoad(k);
+  n[id]=v; bmSave(k,n);
+}
+
+var BILL_MONTHS=['January','February','March','April','May','June','July','August',
+                 'September','October','November','December'];
+var ST_LABEL={paid:'Paid',over:'Overdue',due:'Due soon',up:'To pay',auto:'Auto',tenant:'Tenant'};
+
+function billsScreenHTML(){
+  var key=bmKey(billMonth), now=new Date();
+  var isCur = billMonth.getFullYear()===now.getFullYear() && billMonth.getMonth()===now.getMonth();
+  var today = now.getDate();
+  var paid=bmLoad('bm_paid_'+key), notes=bmLoad('bm_note_'+key);
+  var bills=billsDue(billMonth);
+
+  var n={paid:0,over:0,due:0,up:0,auto:0,tenant:0};
+  bills.forEach(function(b){ n[billStatus(b,paid[b.id],isCur,today)]++; });
+
+  var byDay={};
+  bills.forEach(function(b){ (byDay[b.due]=byDay[b.due]||[]).push(b); });
+  var days=Object.keys(byDay).map(Number).sort(function(a,b){return a-b;});
+
+  var listHTML='', todayShown=false;
+  days.forEach(function(d){
+    if(isCur && !todayShown && d>today){
+      listHTML+='<div class="bm-today"><span>TODAY &middot; '+today+' '+
+                BILL_MONTHS[billMonth.getMonth()].slice(0,3)+'</span></div>';
+      todayShown=true;
+    }
+    listHTML+='<div class="bm-day"><div class="bm-daynum">'+d+'</div><div class="bm-items">';
+    byDay[d].forEach(function(b){
+      var st=billStatus(b,paid[b.id],isCur,today);
+      var manual=b.mode==='manual';
+      var mark = b.mode==='auto'?'A' : b.mode==='tenant'?'T' : (paid[b.id]?'&#10003;':'');
+      var note=notes[b.id]||'';
+      listHTML+='<div class="bm-item '+st+'">'
+        + '<button class="bm-tick '+st+'" '+(manual?'onclick="toggleBill(\''+b.id+'\')"':'disabled')+'>'+mark+'</button>'
+        + '<button class="bm-body" onclick="openBill(\''+b.id+'\')">'
+        +   '<span class="bm-nm">'+escapeHtml(b.nm)+'</span>'
+        +   '<span class="bm-sub">'+escapeHtml(b.grp)+' &middot; '+escapeHtml(b.chan)+'</span>'
+        +   (note?'<span class="bm-note">'+escapeHtml(note)+'</span>':'')
+        + '</button>'
+        + (st==='over'||st==='due' ? '<span class="bm-tag '+st+'">'+ST_LABEL[st]+'</span>' : '')
+        + '</div>';
+    });
+    listHTML+='</div></div>';
+  });
+
+  return '<div class="bills-screen">'
+    + importInputHTML()
+    + '<div class="app-header"><div class="brand">Bills</div>'
+    +   '<div class="header-actions">'+infoButtonHTML()
+    +   '<button class="export-btn import-btn" onclick="triggerImport()">Import</button>'
+    +   '<button class="export-btn" onclick="exportMonth()">Export</button></div></div>'
+    + '<div class="bm-nav"><button onclick="shiftBillMonth(-1)">&lsaquo;</button>'
+    +   '<div class="bm-mlabel">'+BILL_MONTHS[billMonth.getMonth()]+' '+billMonth.getFullYear()+'</div>'
+    +   '<button onclick="shiftBillMonth(1)">&rsaquo;</button></div>'
+    + '<div class="bm-chips">'
+    +   (n.over?'<span class="bm-chip over">'+n.over+' overdue</span>':'')
+    +   (n.due?'<span class="bm-chip due">'+n.due+' due soon</span>':'')
+    +   '<span class="bm-chip up">'+n.up+' to pay</span>'
+    +   '<span class="bm-chip paid">'+n.paid+' paid</span>'
+    +   '<span class="bm-chip auto">'+n.auto+' auto</span>'
+    +   (n.tenant?'<span class="bm-chip tenant">'+n.tenant+' tenant</span>':'')
+    + '</div>'
+    + '<div class="bm-list">'+listHTML+'</div>'
+    + '</div>';
+}
+
+function billSheetHTML(){
+  var b=null, i;
+  for(i=0;i<BILLS.length;i++) if(BILLS[i].id===state.billOpen) b=BILLS[i];
+  if(!b) return '';
+  var key=bmKey(billMonth);
+  var notes=bmLoad('bm_note_'+key), paid=bmLoad('bm_paid_'+key);
+  var ta=taForBill(b);
+  function row(k,v){
+    return v ? '<div class="ta-row"><span class="ta-from">'+escapeHtml(k)+
+               '</span><span class="ta-to">'+escapeHtml(String(v))+'</span></div>' : '';
+  }
+  return '<div class="sheet-backdrop" onclick="closeBill()">'
+    + '<div class="sheet" onclick="event.stopPropagation()">'
+    +   '<div class="sheet-handle"></div>'
+    +   '<div class="sheet-title">'+escapeHtml(b.nm)+'</div>'
+    +   row('Category', b.grp)
+    +   (acctFor(b.id) ? row('Account', acctFor(b.id))
+         : '<div class="ta-row"><span class="ta-from">Account</span><span class="ta-to" style="color:var(--text-faint)">not on this phone &mdash; Import ledger_accounts.json</span></div>')
+    +   row('Due', 'day '+b.due+' of the month')
+    +   row('Statement issued', b.stmt==='Np' ? 'previous month' : (b.stmt||''))
+    +   row('Pay channel', b.chan)
+    +   row('Frequency', b.freq)
+    +   row('Books to (TA)', ta || 'not mapped')
+    +   (b.info?'<div class="ta-note">'+escapeHtml(b.info)+'</div>':'')
+    +   '<div class="note-wrap" style="padding:10px 0 4px"><input class="note-input" '
+    +     'placeholder="Note — how you paid it" value="'+escapeHtml(notes[b.id]||'')+'" '
+    +     'oninput="setBillNote(\''+b.id+'\', this.value)"></div>'
+    +   (b.mode==='manual'
+        ? '<button class="save-btn" style="margin-top:10px" onclick="toggleBill(\''+b.id+'\');closeBill();">'
+          + (paid[b.id]?'Mark unpaid':'Mark paid') + '</button>'
+        : '<div class="ta-note">'+(b.mode==='auto'
+             ? 'Pays itself — BM reconciles it against the bank later.'
+             : 'The tenant pays this during the Henge tenancy.')+'</div>')
+    + '</div></div>';
+}
+
+function infoSheetHTML(){
+  var rows = [
+    ['Where it lives', "<code>localStorage</code> &mdash; a storage bucket tied to THIS Home Screen icon specifically. Not cache, not shared with a Safari tab, doesn't sync anywhere until you tap Export."],
+    ['What deletes it', "Deleting this Home Screen icon and re-adding it &middot; Settings &rarr; Safari &rarr; Clear History and Website Data &middot; Settings &rarr; Safari &rarr; Advanced &rarr; Website Data &rarr; remove this site."],
+    ["What's safe", "Force-quitting the app, restarting your phone, low-storage warnings, normal iOS updates &mdash; none of these touch it."],
+    ['Real backup', "None of the above is a guarantee for every edge case. <b>Export regularly and AirDrop it off the phone</b> &mdash; that's the actual insurance, not a courtesy."],
+  ];
+  return '<div class="sheet-backdrop" onclick="closeInfoSheet()">' +
+    '<div class="sheet" onclick="event.stopPropagation()">' +
+      '<div class="sheet-handle"></div><div class="sheet-title">Where your data lives</div>' +
+      rows.map(function(r){
+        return '<div class="info-row"><div class="k">' + r[0] + '</div><div class="v">' + r[1] + '</div></div>';
+      }).join('') +
+    '</div></div>';
+}
+
+function render(){
+  var root = document.getElementById('root');
+  if(state.loading){
+    root.innerHTML = '<div class="loading">Loading…</div>';
+    return;
+  }
+  root.innerHTML =
+    '<div class="screen-container">' + (state.tab==='add' ? addScreenHTML() :
+      state.tab==='bills' ? billsScreenHTML() :
+      state.tab==='market' ? marketScreenHTML() : historyScreenHTML()) + '</div>' +
+    tabbarHTML() +
+    '<div id="toast" class="toast"></div>' +
+    (state.currencySheetOpen ? currencySheetHTML() : '') +
+    (state.pmSheetOpen ? pmSheetHTML() : '') +
+    (state.infoSheetOpen ? infoSheetHTML() : '') +
+    (state.taSheetOpen ? taSheetHTML() : '') +
+    (state.billOpen ? billSheetHTML() : '');
+  updateSaveButtonState();
+}
+
+document.addEventListener('touchstart', function(){}, {passive:true});
+loadData();
+</script>
+</body>
+</html>
