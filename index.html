@@ -58,6 +58,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .segmented button{flex:1;font-family:'Inter';font-weight:600;font-size:14px;padding:9px 0;border-radius:10px;color:var(--text-dim);transition:background .15s,color .15s;}
 .segmented button.active.expense{background:rgba(255,107,107,0.14);color:var(--expense);}
 .segmented button.active.income{background:rgba(74,222,128,0.14);color:var(--income);}
+.segmented button.active.history{background:var(--surface-2);color:var(--gold);}
 
 .amount-wrap{text-align:center;padding:26px 20px 16px;}
 .amount-row{display:flex;align-items:baseline;justify-content:center;gap:8px;}
@@ -589,6 +590,13 @@ function showToast(msg){
 function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; state.taSheetOpen = false; state.billOpen = null; render(); }
 
 function setType(type){
+  if(state.tab === 'history'){        // coming back from History
+    state.tab = 'add';
+    state.type = type;
+    state.category = null;
+    render();
+    return;
+  }
   if(state.type === type) return;
   state.type = type;
   state.category = null;
@@ -984,6 +992,21 @@ function importInputHTML(){
   return '<input type="file" id="importFile" accept=".md,.markdown,.json,text/markdown,text/plain,application/json" style="display:none" onchange="handleImportFile(event)">';
 }
 
+// Expense / Income / History — the same control on both screens (YY, 2026-08-27:
+// "History can be 3rd header button for +Add"). History stops being a bottom tab
+// and becomes a sibling view, the way Card / Paper P/L sit under Market.
+function entrySegmentedHTML(){
+  var onHist = state.tab === 'history';
+  return '<div class="segmented">' +
+    '<button class="' + (!onHist && state.type==='expense' ? 'active expense' : '') +
+      '" onclick="setType(\'expense\')">Expense</button>' +
+    '<button class="' + (!onHist && state.type==='income' ? 'active income' : '') +
+      '" onclick="setType(\'income\')">Income</button>' +
+    '<button class="' + (onHist ? 'active history' : '') +
+      '" onclick="switchTab(\'history\')">History</button>' +
+  '</div>';
+}
+
 function addScreenHTML(){
   var typeLabel = state.type === 'expense' ? 'Expense' : 'Income';
   return '<div class="add-screen">' +
@@ -992,10 +1015,7 @@ function addScreenHTML(){
     '<div class="header-actions">' + infoButtonHTML() +
     '<button class="currency-pill" onclick="openCurrencySheet()">' + state.currency + ' ▾</button></div></div>' +
     '<div class="date-row"><input type="date" class="date-input" value="' + state.date + '" max="' + todayStr() + '" onchange="state.date=this.value||todayStr();"></div>' +
-    '<div class="segmented">' +
-      '<button class="' + (state.type==='expense' ? 'active expense' : '') + '" onclick="setType(\'expense\')">Expense</button>' +
-      '<button class="' + (state.type==='income' ? 'active income' : '') + '" onclick="setType(\'income\')">Income</button>' +
-    '</div>' +
+    entrySegmentedHTML() +
     (state.editing ? '<div class="editing-bar">Editing an earlier entry' +
        '<button onclick="cancelEdit()">Cancel</button></div>' : '') +
     '<div class="amount-wrap"><div class="amount-row">' +
@@ -1037,6 +1057,7 @@ function historyScreenHTML(){
       '<div class="app-header"><div class="brand">Ledger</div>' +
       '<div class="header-actions">' + infoButtonHTML() +
       '<button class="export-btn import-btn" onclick="triggerImport()">Import</button></div></div>' +
+      entrySegmentedHTML() +
       '<div class="empty-state"><div class="empty-emoji">🪙</div>' +
       '<div class="empty-title">No transactions yet</div>' +
       '<div class="empty-sub">Log your first one from the Add tab, or Import a previous export.</div>' +
@@ -1062,6 +1083,7 @@ function historyScreenHTML(){
     '<div class="header-actions">' + infoButtonHTML() +
     '<button class="export-btn import-btn" onclick="triggerImport()">Import</button>' +
     '<button class="export-btn" onclick="exportMonth()">Export</button></div></div>' +
+    entrySegmentedHTML() +
     '<div class="balance-row">' + balanceHTML + '</div>' +
     '<div class="tx-list">' + listHTML + '</div>' +
   '</div>';
@@ -1103,8 +1125,7 @@ function marketScreenHTML(){
 
 function tabbarHTML(){
   return '<div class="tabbar">' +
-    '<button class="' + (state.tab==='add'?'active':'') + '" onclick="switchTab(\'add\')">' + plusSvg + '<span>Add</span></button>' +
-    '<button class="' + (state.tab==='history'?'active':'') + '" onclick="switchTab(\'history\')">' + listSvg + '<span>History</span></button>' +
+    '<button class="' + (state.tab==='add'||state.tab==='history'?'active':'') + '" onclick="switchTab(\'add\')">' + plusSvg + '<span>Add</span></button>' +
     '<button class="' + (state.tab==='bills'?'active':'') + '" onclick="switchTab(\'bills\')">' + billSvg + '<span>Bills</span></button>' +
     '<button class="' + (state.tab==='market'?'active':'') + '" onclick="switchTab(\'market\')">' + chartSvg + '<span>Market</span></button>' +
   '</div>';
