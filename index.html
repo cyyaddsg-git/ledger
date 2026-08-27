@@ -1093,8 +1093,9 @@ function historyScreenHTML(){
 // i004's own GitHub Action at 21:00 SGT weekdays -- embedding it means this app
 // never needs a rebuild when the card changes.
 var MARKET_URLS = {
-  card: 'https://cyyaddsg-git.github.io/i004-market-bars/',
-  sim:  'https://cyyaddsg-git.github.io/i004-market-bars/sim.html'
+  card:     'https://cyyaddsg-git.github.io/i004-market-bars/',
+  intraday: 'https://cyyaddsg-git.github.io/i004-market-bars/intraday.html',
+  sim:      'https://cyyaddsg-git.github.io/i004-market-bars/sim.html'
 };
 var MARKET_URL = MARKET_URLS.card;          // kept: the Open button still uses it
 var marketNonce = 0;
@@ -1102,15 +1103,19 @@ function reloadMarket(){ marketNonce++; render(); showToast('Reloading'); }
 function setMarketView(v){ state.marketView = v; render(); }
 
 function marketScreenHTML(){
-  var view = state.marketView === 'sim' ? 'sim' : 'card';
+  var view = MARKET_URLS[state.marketView] ? state.marketView : 'card';
   var url = MARKET_URLS[view];
   var seg = '<div class="segmented" style="margin:6px 20px 8px">' +
     '<button class="' + (view==='card'?'active':'') + '" onclick="setMarketView(\'card\')">Card</button>' +
+    '<button class="' + (view==='intraday'?'active':'') + '" onclick="setMarketView(\'intraday\')">Intraday</button>' +
     '<button class="' + (view==='sim'?'active':'') + '" onclick="setMarketView(\'sim\')">Paper P/L</button>' +
     '</div>';
-  var note = view === 'sim'
-    ? 'Simulated book &middot; USD 100,000 opened 2026-08-27, no fees. Fills are real bar opens &mdash; no order is ever placed.'
-    : 'Advice only &middot; rebuilt 21:00 SGT weekdays. Blank means the card has not run yet, or you are offline.';
+  var NOTES = {
+    card: 'Advice only &middot; rebuilt 20:45 SGT weekdays. Blank means the card has not run yet, or you are offline.',
+    intraday: 'Trigger and invalidation only &mdash; never an order. Refreshes itself every 60s; only current while a read is running.',
+    sim: 'Simulated book &middot; USD 100,000 opened 2026-08-27, no fees. Fills are real bar opens &mdash; no order is ever placed.'
+  };
+  var note = NOTES[view];
   return '<div class="market-screen">' +
     '<div class="app-header"><div class="brand">Market</div>' +
     '<div class="header-actions">' +
