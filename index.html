@@ -59,7 +59,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .tx-pm{font-size:12px;}
 
 .date-row{padding:0 20px 8px;}
-.date-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:8px 14px;font-size:14px;font-weight:500;color:var(--text);font-family:'Inter',sans-serif;-webkit-appearance:auto;}
+/* -webkit-appearance:auto makes WebKit lay this out as a native control, which resets
+   box-sizing to the UA default -- so width:100% became 100% PLUS 28px padding and the
+   field ran off the right of the phone while the segmented control and keypad sat
+   correctly inside. Re-assert border-box after the appearance, and cap the width. */
+.date-input{width:100%;max-width:100%;box-sizing:border-box;-webkit-box-sizing:border-box;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:8px 14px;
+  font-size:14px;font-weight:500;color:var(--text);font-family:'Inter',sans-serif;-webkit-appearance:auto;}
 .date-input::-webkit-date-and-time-value{text-align:left;}
 
 .segmented{display:flex;margin:4px 20px 0;background:var(--surface);border-radius:14px;padding:4px;}
@@ -74,22 +80,18 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .amount-symbol{font-family:'JetBrains Mono';font-size:18px;color:var(--text-faint);}
 .amount{font-family:'Space Grotesk';font-weight:700;font-size:44px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
 
-.cat-row{display:flex;gap:10px;overflow-x:auto;padding:4px 20px 10px;scrollbar-width:none;
-  /* hard floor: whatever an engine computes for the chips, the row keeps the room
-     for a 46px bubble + label + TA sub-label, so nothing can spill onto the rows below. */
-  min-height:105px;}
-.cat-row::-webkit-scrollbar{display:none;}
-.cat-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;padding:2px;min-height:88px;}
-.cat-bubble{width:46px;height:46px;border-radius:14px;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;transition:transform .15s,background .15s,border-color .15s;}
+/* YY 2026-08-28: was a horizontal scroller, so the chips ran past the right edge of the
+   phone while the segmented control and keypad sat inside it, and half the categories were
+   out of sight. Now a wrapping grid on the SAME 20px margins as the segmented control:
+   all 11 buttons visible, nothing exceeding the screen width, no horizontal scroll. */
+.cat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 6px;padding:2px 20px 8px;}
+.cat-chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0;min-width:0;}
+.cat-bubble{width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;transition:transform .15s,background .15s,border-color .15s;}
 .cat-chip.selected .cat-bubble{background:var(--gold-dim);border-color:var(--gold);transform:scale(1.06);}
-.cat-label{font-size:11px;color:var(--text-dim);font-weight:500;}
-/* the TA category this button becomes -- shown only when it differs from the label */
-.cat-ta{font-size:9px;color:var(--text-dim);opacity:.6;font-weight:400;line-height:1.1;max-width:58px;text-align:center;}
-.cat-chip.selected .cat-ta{color:var(--gold);opacity:.85;}
+.cat-label{font-size:10px;line-height:1.15;color:var(--text-dim);font-weight:500;text-align:center;max-width:100%;}
 .cat-chip.selected .cat-label{color:var(--gold);}
 
-.pm-row{display:flex;gap:8px;overflow-x:auto;padding:0 20px 10px;scrollbar-width:none;min-height:47px;}
-.pm-row::-webkit-scrollbar{display:none;}
+.pm-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 8px;}
 .pm-chip{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:var(--surface);border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--text-dim);transition:background .15s,border-color .15s,color .15s;}
 .pm-chip.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
 .pm-chip.more{border-style:dashed;}
@@ -133,7 +135,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .save-btn:disabled{background:var(--surface-2);color:var(--text-faint);}
 .save-btn:active:not(:disabled){transform:scale(0.98);}
 
-.tabbar{flex-shrink:0;display:flex;background:var(--surface);border-top:1px solid var(--border);padding:5px 0 calc(env(safe-area-inset-bottom) + 3px);}
+/* The home-indicator inset is 34px on YY's phone, which read as two blank lines under
+   the labels. Halved, with a floor so a device without an inset still has breathing room. */
+.tabbar{flex-shrink:0;display:flex;background:var(--surface);border-top:1px solid var(--border);
+  padding:5px 0 max(6px, calc(env(safe-area-inset-bottom) - 18px));}
 .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-faint);font-size:10px;font-weight:600;}
 .tabbar button.active{color:var(--gold);}
 .tabbar svg{width:20px;height:20px;stroke:currentColor;}
@@ -461,7 +466,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-08-28e';
+var BUILD = '2026-08-28f';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
@@ -959,11 +964,15 @@ async function exportMonth(){
 function categoryRowHTML(){
   var cats = state.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
   return '<div class="cat-row">' + cats.map(function(c){
+    // The TA name is NOT repeated under every chip any more (YY 2026-08-28: it cost a
+    // whole line on each of the two grid rows). It is on the chip as a tooltip/aria
+    // label, and the "= TA category" button above opens the full table.
     var tip = taTip(c.id, c.label);
-    return '<button class="cat-chip ' + (state.category === c.id ? 'selected' : '') + '" onclick="selectCategory(\'' + c.id + '\')">' +
+    return '<button class="cat-chip ' + (state.category === c.id ? 'selected' : '') + '"' +
+      (tip ? ' title="' + escapeHtml(tip) + '" aria-label="' + escapeHtml(c.label + ' — ' + tip) + '"' : '') +
+      ' onclick="selectCategory(\'' + c.id + '\')">' +
       '<span class="cat-bubble">' + c.emoji + '</span>' +
       '<span class="cat-label">' + c.label + '</span>' +
-      (tip ? '<span class="cat-ta">' + escapeHtml(tip) + '</span>' : '<span class="cat-ta">&nbsp;</span>') +
       '</button>';
   }).join('') + '</div>';
 }
