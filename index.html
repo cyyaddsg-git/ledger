@@ -362,22 +362,17 @@ function taTip(id, label){
 // A button whose TA category is null lands in TA as Unidentified on purpose:
 // the app never guesses a category YY has not chosen.
 var EXPENSE_CATS = [
-  {id:"food",emoji:"\ud83c\udf54",label:"Food"},
-  {id:"groceries",emoji:"\ud83d\uded2",label:"Groceries"},
+  {id:"food",emoji:"\ud83c\udf54",label:"Food & Grocer"},
   {id:"transport",emoji:"\ud83d\ude97",label:"Transport"},
-  {id:"shopping",emoji:"\ud83d\udecd\ufe0f",label:"Shopping"},
-  {id:"entertainment",emoji:"\ud83c\udfac",label:"Fun"},
+  {id:"shopping",emoji:"\ud83d\udecd\ufe0f",label:"Shop & Fun"},
   {id:"selfcare",emoji:"\ud83d\udc86",label:"Self-care"},
   {id:"living",emoji:"\ud83e\uddf4",label:"Living"},
   {id:"pet",emoji:"\ud83d\udc3e",label:"Pet"},
-  {id:"health",emoji:"\ud83c\udfe5",label:"Health"},
+  {id:"health",emoji:"\ud83c\udfe5",label:"Medical"},
   {id:"bills",emoji:"\ud83e\uddfe",label:"Bills"},
-  {id:"housing",emoji:"\ud83c\udfd8\ufe0f",label:"Housing"},
   {id:"travel",emoji:"\u2708\ufe0f",label:"Travel"},
   {id:"reno",emoji:"\ud83d\udd28",label:"Reno"},
-  {id:"cash",emoji:"\ud83d\udcb5",label:"Cash"},
-  {id:"tax",emoji:"\ud83c\udfdb\ufe0f",label:"Tax"},
-  {id:"other",emoji:"\ud83d\udce6",label:"Other"}
+  {id:"other",emoji:"\ud83d\udce6",label:"Others"}
 ];
 var INCOME_CATS = [
   {id:"salary",emoji:"\ud83d\udcb0",label:"Salary"},
@@ -389,27 +384,27 @@ var INCOME_CATS = [
 ];
 var TA_MAP = {
   "food": "Meal",
-  "groceries": "Meal",
   "transport": "Transport",
   "shopping": "Shopping",
-  "entertainment": "Shopping",
   "selfcare": "Sports & Self-care",
   "living": "Living",
   "pet": "Pet",
   "health": "Medical",
   "bills": "Bill",
-  "housing": "Bill",
   "travel": "Travel",
   "reno": "Ember Renovation",
-  "cash": "Cash",
-  "tax": "Tax",
   "other": null,
   "salary": "Salary",
   "investment": "Dividend",
   "sale": "Second Hand Sale",
   "rent": "House Rent",
   "gift": null,
-  "other_income": null
+  "other_income": null,
+  "groceries": "Meal",
+  "entertainment": "Shopping",
+  "housing": "Bill",
+  "cash": "Cash",
+  "tax": "Tax"
 };
 // Grouped by real instrument (replaced the old generic Cash/Card/Bank/E-wallet
 // buckets). `placeholder:true` = account confirmed but details (last 4, etc.)
@@ -461,7 +456,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-08-28c';
+var BUILD = '2026-08-28d';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
@@ -1194,7 +1189,7 @@ function taSheetHTML(){
       '<div class="ta-note">Your buttons keep their short names. This is the category ' +
       'TA files them under when you Export &mdash; nothing is translated by hand.</div>' +
       block('Expense', EXPENSE_CATS) + block('Income', INCOME_CATS) +
-      '<div class="ta-note">Three buttons map to nothing on purpose: <b>Other</b>, ' +
+      '<div class="ta-note">Three buttons map to nothing on purpose: <b>Others</b>, ' +
       '<b>Gift</b> and <b>Other</b> (income). TA surfaces those for you to categorise ' +
       'rather than guessing.</div>' +
     '</div></div>';
