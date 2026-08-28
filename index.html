@@ -69,7 +69,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .segmented button.active.income{background:rgba(74,222,128,0.14);color:var(--income);}
 .segmented button.active.history{background:var(--surface-2);color:var(--gold);}
 
-.amount-wrap{text-align:center;padding:12px 20px 4px;}
+.amount-wrap{text-align:center;padding:8px 20px 4px;}
 .amount-row{display:flex;align-items:baseline;justify-content:center;gap:8px;}
 .amount-symbol{font-family:'JetBrains Mono';font-size:18px;color:var(--text-faint);}
 .amount{font-family:'Space Grotesk';font-weight:700;font-size:44px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
@@ -117,21 +117,26 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .note-input:focus{border-color:var(--gold);}
 .note-input::placeholder{color:var(--text-faint);}
 
-.spacer{flex:1;}
+.spacer{flex:1 1 0;}   /* soaks whatever is left once the keypad hits its cap */
 
-.keypad{padding:4px 16px 4px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.key{background:var(--surface);border-radius:14px;height:48px;font-family:'Space Grotesk';font-size:21px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s;}
+/* The keypad is the only part of the entry screen whose height genuinely does not
+   matter -- a 40px key works as well as a 54px one. So it, and nothing else, absorbs
+   whatever vertical space is left: the screen then fits any phone instead of being
+   tuned to one. minmax(40px,1fr) is the floor, below which the container scrolls. */
+.keypad{padding:4px 16px 4px;display:grid;grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(4,minmax(40px,1fr));gap:6px;flex:1 1 auto;max-height:254px;}
+.key{background:var(--surface);border-radius:14px;height:auto;min-height:0;font-family:'Space Grotesk';font-size:21px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s;}
 .key:active{background:var(--surface-2);transform:scale(0.95);}
 .key svg{width:20px;height:20px;stroke:var(--text-dim);}
 
-.save-btn{margin:6px 20px 8px;background:var(--gold);color:#14200F;border-radius:16px;height:48px;font-family:'Space Grotesk';font-weight:700;font-size:16px;transition:transform .1s;}
+.save-btn{margin:4px 20px 6px;background:var(--gold);color:#14200F;border-radius:16px;height:46px;font-family:'Space Grotesk';font-weight:700;font-size:16px;transition:transform .1s;}
 .save-btn:disabled{background:var(--surface-2);color:var(--text-faint);}
 .save-btn:active:not(:disabled){transform:scale(0.98);}
 
-.tabbar{flex-shrink:0;display:flex;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 calc(env(safe-area-inset-bottom) + 8px);}
-.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-faint);font-size:11px;font-weight:600;}
+.tabbar{flex-shrink:0;display:flex;background:var(--surface);border-top:1px solid var(--border);padding:5px 0 calc(env(safe-area-inset-bottom) + 3px);}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-faint);font-size:10px;font-weight:600;}
 .tabbar button.active{color:var(--gold);}
-.tabbar svg{width:22px;height:22px;stroke:currentColor;}
+.tabbar svg{width:20px;height:20px;stroke:currentColor;}
 
 .balance-row{display:flex;gap:10px;padding:10px 20px 14px;overflow-x:auto;scrollbar-width:none;
   position:sticky;top:0;z-index:2;background:var(--bg);
@@ -456,7 +461,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-08-28d';
+var BUILD = '2026-08-28e';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
@@ -655,9 +660,12 @@ function updateSaveButtonState(){
   // A jot with no amount is allowed, so long as it says WHAT and PAID HOW -- that is
   // exactly what TA needs to match it to a bank row later.
   btn.disabled = !(state.category && state.payMethod);
-  btn.textContent = (state.editing ? 'Update ' : (amt > 0 ? 'Save ' : 'Jot ')) +
-                    (state.type === 'expense' ? 'Expense' : 'Income') +
-                    (amt > 0 ? '' : ' — amount unknown');
+  // YY 2026-08-28: "Jot Expense — amount unknown" read as jargon. Same feature, said
+  // plainly: with no amount typed the button says what it will do, not what it is called.
+  var kind = state.type === 'expense' ? 'Expense' : 'Income';
+  btn.textContent = amt > 0
+    ? (state.editing ? 'Update ' : 'Save ') + kind
+    : (state.editing ? 'Update without amount' : 'Save without amount');
 }
 
 function selectCategory(id){ state.category = id; render(); }
