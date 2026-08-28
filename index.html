@@ -47,8 +47,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .market-frame{flex:1 1 auto;width:100%;border:0;background:#080d0a;min-height:60vh;}
 .market-note{color:var(--text-faint);font-size:11px;padding:8px 20px calc(env(safe-area-inset-bottom) + 4px);line-height:1.5;}
 
-.app-header{padding:calc(env(safe-area-inset-top) + 10px) 20px 4px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.brand{font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-0.02em;}
+.app-header{padding:calc(env(safe-area-inset-top) + 10px) 20px 4px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.brand{font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-0.02em;flex:0 1 auto;min-width:0;}
 .header-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
 .currency-pill{background:var(--surface-2);border:1px solid var(--border);font-family:'JetBrains Mono';font-size:13px;padding:7px 12px;border-radius:20px;}
 .export-btn{background:var(--surface-2);border:1px solid var(--border);color:var(--gold);font-weight:600;font-size:13px;padding:7px 14px;border-radius:20px;white-space:nowrap;}
@@ -58,14 +58,15 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .info-btn:active{background:var(--gold-dim);color:var(--gold);}
 .tx-pm{font-size:12px;}
 
-.date-row{padding:0 20px 8px;}
-/* -webkit-appearance:auto makes WebKit lay this out as a native control, which resets
-   box-sizing to the UA default -- so width:100% became 100% PLUS 28px padding and the
-   field ran off the right of the phone while the segmented control and keypad sat
-   correctly inside. Re-assert border-box after the appearance, and cap the width. */
-.date-input{width:100%;max-width:100%;box-sizing:border-box;-webkit-box-sizing:border-box;
-  background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:8px 14px;
-  font-size:14px;font-weight:500;color:var(--text);font-family:'Inter',sans-serif;-webkit-appearance:auto;}
+/* YY 2026-08-28: "why the date container must be so wide?" -- it needn't be. It holds
+   ten characters, so it is a pill the width of its content, sitting in the header beside
+   the currency pill instead of owning a 46px row of its own.
+   box-sizing is re-asserted AFTER -webkit-appearance: making WebKit lay an input out as a
+   native control resets box-sizing to the UA default, which is what made the old
+   width:100% field 28px wider than the screen. */
+.date-input{width:auto;box-sizing:border-box;-webkit-box-sizing:border-box;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:6px 10px;
+  font-size:13px;font-weight:500;color:var(--text);font-family:'Inter',sans-serif;-webkit-appearance:auto;}
 .date-input::-webkit-date-and-time-value{text-align:left;}
 
 .segmented{display:flex;margin:4px 20px 0;background:var(--surface);border-radius:14px;padding:4px;}
@@ -466,7 +467,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-08-28f';
+var BUILD = '2026-08-28g';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
@@ -1048,9 +1049,13 @@ function addScreenHTML(){
   return '<div class="add-screen">' +
     importInputHTML() +
     '<div class="app-header"><div class="brand">Ledger</div>' +
-    '<div class="header-actions">' + infoButtonHTML() +
+    '<div class="header-actions">' +
+    // the date sits with the other header pills -- it is ten characters wide, it does
+    // not need a row of its own (YY 2026-08-28)
+    '<input type="date" class="date-input" value="' + state.date + '" max="' + todayStr() +
+      '" aria-label="Date" onchange="state.date=this.value||todayStr();">' +
+    infoButtonHTML() +
     '<button class="currency-pill" onclick="openCurrencySheet()">' + state.currency + ' ▾</button></div></div>' +
-    '<div class="date-row"><input type="date" class="date-input" value="' + state.date + '" max="' + todayStr() + '" onchange="state.date=this.value||todayStr();"></div>' +
     entrySegmentedHTML() +
     (state.editing ? '<div class="editing-bar">Editing an earlier entry' +
        '<button onclick="cancelEdit()">Cancel</button></div>' : '') +
