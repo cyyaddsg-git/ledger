@@ -264,6 +264,7 @@ var BILLS=[
  {id:"cc_pbbv", grp:"Credit card", nm:"PBB Visa Signature", due:6, stmt:"17p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
  {id:"cc_pbbq", grp:"Credit card", nm:"PBB Quantum", due:6, stmt:"17p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
  {id:"cc_uob", grp:"Credit card", nm:"UOB Mastercard", due:25, stmt:"5", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
+ {id:"cc_hlbwise", grp:"Credit card", nm:"HLB Wise", due:5, stmt:"16p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
  {id:"cc_amex", grp:"Credit card", nm:"Maybank Amex", due:17, stmt:"", mode:"auto", freq:"monthly", chan:"auto"},
  {id:"in_mazda", grp:"Installment", nm:"PBB Hire Purchase — Mazda", due:30, stmt:"", mode:"auto", freq:"monthly", chan:"auto · CIMB"},
  {id:"in_henge", grp:"Installment", nm:"The Henge installment", due:5, stmt:"", mode:"auto", freq:"monthly", chan:"auto · RHB"},
@@ -467,7 +468,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-08-28g';
+var BUILD = '2026-08-29a';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
