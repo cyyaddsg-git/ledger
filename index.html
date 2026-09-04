@@ -244,6 +244,30 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
    Only the name is struck -- the note underneath is the payment record and has to
    stay readable. */
 .bm-item.paid .bm-nm{text-decoration:line-through;text-decoration-color:var(--text-dim);}
+/* The pay entry inside a bill's sheet (R40, 2026-09-05). Deliberately reuses the Add
+   screen's pill/chip vocabulary -- same currency pill, same pay-method chips -- so there
+   is one thing to learn, not two. */
+.pay-block{margin-top:4px;}
+.pay-amt-row{display:flex;align-items:center;gap:8px;}
+.pay-amt{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:12px;padding:10px 12px;font-family:'JetBrains Mono';font-size:20px;
+  font-weight:600;color:var(--text);outline:none;}
+.pay-amt:focus{border-color:var(--gold);}
+.pay-amt::placeholder{color:var(--text-faint);font-weight:500;}
+.pay-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;
+  letter-spacing:.06em;margin:12px 2px 6px;}
+.pay-block .pm-row{padding:0;}
+.pay-recs{margin:10px 0 2px;}
+.pay-rec{display:flex;align-items:baseline;gap:8px;font-size:12px;padding:5px 2px;
+  border-bottom:1px solid var(--border);color:var(--text-dim);}
+.pay-rec .amt{margin-left:auto;font-family:'JetBrains Mono';color:var(--text);}
+.pay-rec .del{color:var(--expense);opacity:.7;padding:0 2px;font-size:14px;}
+.pay-total{display:flex;align-items:baseline;gap:8px;font-size:13px;padding:8px 2px 0;}
+.pay-total b{margin-left:auto;font-family:'JetBrains Mono';color:var(--gold);font-size:15px;}
+.bm-paid-amt{font-size:11px;font-family:'JetBrains Mono';color:var(--income);
+  opacity:.9;margin-top:2px;}
+.unpay-btn{margin-top:8px;width:100%;height:40px;border-radius:14px;
+  background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);font-size:14px;}
 .bm-item.auto,.bm-item.tenant{opacity:.55;}
 .bm-tick{flex:0 0 28px;height:28px;border-radius:9px;border:1.5px solid var(--border);
  background:var(--surface-2);color:var(--text-dim);font-size:13px;font-weight:700;}
@@ -268,8 +292,8 @@ var CURRENCIES = {MYR:'RM',USD:'$',SGD:'S$',EUR:'€',GBP:'£',JPY:'¥',CNY:'¥'
 // regenerate: python3 tools/taxonomy_export.py bills_app
 // `id` IS the localStorage key for a bill's tick and note. Never change one.
 var BILLS=[
- {id:"cc_dbs", grp:"Credit card", nm:"DBS Altitude Visa", due:7, stmt:"12p", mode:"manual", freq:"monthly", chan:"DBS app"},
- {id:"cc_citi", grp:"Credit card", nm:"Citi PremierMiles", due:16, stmt:"19p", mode:"manual", freq:"monthly", chan:"DBS app"},
+ {id:"cc_dbs", grp:"Credit card", nm:"DBS Altitude Visa", due:7, stmt:"12p", mode:"manual", freq:"monthly", chan:"DBS app", cur:"SGD"},
+ {id:"cc_citi", grp:"Credit card", nm:"Citi PremierMiles", due:16, stmt:"19p", mode:"manual", freq:"monthly", chan:"DBS app", cur:"SGD"},
  {id:"cc_pbbv", grp:"Credit card", nm:"PBB Visa Signature", due:6, stmt:"17p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
  {id:"cc_pbbq", grp:"Credit card", nm:"PBB Quantum", due:6, stmt:"17p", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
  {id:"cc_uob", grp:"Credit card", nm:"UOB Mastercard", due:25, stmt:"5", mode:"manual", freq:"monthly", chan:"CIMB MY app"},
@@ -299,7 +323,7 @@ var BILLS=[
  {id:"em_mbsa", grp:"Ember", nm:"MBSA assessment", due:28, stmt:"TBC", mode:"manual", freq:"semiannual", dueMonths:[2,8], chan:"MBSA app", info:"~RM283.68/half"},
  {id:"sub_fit", grp:"Subscription", nm:"Anytime Fitness", due:1, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB"},
  {id:"sub_net", grp:"Subscription", nm:"Netflix", due:25, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB Visa"},
- {id:"sub_gomo", grp:"Subscription", nm:"Gomo Singapore", due:1, stmt:"", mode:"auto", freq:"monthly", chan:"auto · SG card"},
+ {id:"sub_gomo", grp:"Subscription", nm:"Gomo Singapore", due:1, stmt:"", mode:"auto", freq:"monthly", chan:"auto · SG card", cur:"SGD"},
  {id:"ins_ge", grp:"Insurance", nm:"Great Eastern", due:29, stmt:"", mode:"auto", freq:"monthly", chan:"auto · PBB Quantum"},
  {id:"ins_mazda", grp:"Insurance", nm:"Mazda road tax + insurance", due:31, stmt:"", mode:"manual", freq:"annual", dueMonths:[5], chan:"MyEG / JPJ", info:"renews May"},
 ];
@@ -319,6 +343,63 @@ loadAccts();
 
 function bmLoad(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}'); }catch(e){ return {}; } }
 function bmSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ showToast('Could not save'); } }
+
+// ---- Payments (R40, YY 2026-09-05: "decide 1 entry interface that let me enter payment
+// RMxx and payment method, which also cross the bill of the month").
+// bm_pay_<YYYY-MM>[billId] = {recs:[{d,amt,cur,pm,n,txId}], hand:'<note YY typed>'}
+//   recs   one record per tap. An ARRAY because YY's own sheet already splits a bill:
+//          "7/18 rm10000 cimb, 7/21 rm2610.05".
+//   hand   whatever free text was in bm_note_ before the first payment was recorded,
+//          kept verbatim so nothing YY typed is ever destroyed.
+// bm_note_ stays THE interop field -- Export/Import, the standalone Bill Manager and
+// bm_crosscheck.py all read it -- and is REGENERATED from recs + hand in YY's own
+// dialect (7/18 rm10000 cimb my). Nothing here is parsed OUT of an existing note: a
+// recomposition that mangles YY's own words would be worse than having no total.
+function bmPayLoad(ym){ return bmLoad('bm_pay_'+ym); }
+function bmPaySave(ym,v){ bmSave('bm_pay_'+ym,v); }
+function payEntry(ym,id){
+  var e = bmPayLoad(ym)[id];
+  return (e && typeof e === 'object') ? {recs: e.recs||[], hand: e.hand==null?null:e.hand}
+                                      : {recs: [], hand: null};
+}
+function trimAmt(a){
+  // 220 -> "220", 180.90 -> "180.9", 2979.01 -> "2979.01". YY writes it this way.
+  return String(Math.round(a*100)/100);
+}
+function payLine(r){
+  var d = String(r.d).split('-');
+  var out = Number(d[1])+'/'+Number(d[2]);
+  var pm = r.pm && PAY_METHODS_BY_ID[r.pm] ? PAY_METHODS_BY_ID[r.pm].label.toLowerCase() : '';
+  if(pm) out += ' ' + pm;
+  if(r.amt != null) out += ' ' + (r.cur==='MYR' ? 'rm' : String(r.cur).toLowerCase()) + trimAmt(r.amt);
+  if(r.n) out += ' ' + r.n;
+  return out;
+}
+function payNoteFor(e){
+  var gen = (e.recs||[]).map(payLine).join(', ');
+  return [gen, e.hand||''].filter(Boolean).join(' · ');
+}
+// The one place bm_note_ is written from a payment. Keeps the two stores in step so a
+// note can never say something the records do not.
+function syncBillNote(ym, id){
+  var e = payEntry(ym, id);
+  var n = bmLoad('bm_note_'+ym);
+  var composed = payNoteFor(e);
+  if(composed) n[id] = composed; else delete n[id];
+  bmSave('bm_note_'+ym, n);
+}
+function payTotals(e){
+  // Split by currency -- a bill can legitimately be settled in two (SGD card paid from a
+  // MYR account). Never sums across currencies; there is no rate in this app.
+  var by = {};
+  (e.recs||[]).forEach(function(r){ if(r.amt!=null){ by[r.cur]=(by[r.cur]||0)+r.amt; } });
+  return by;
+}
+function payTotalText(e){
+  var by = payTotals(e), ks = Object.keys(by);
+  if(!ks.length) return '';
+  return ks.map(function(c){ return (CURRENCIES[c]||c) + trimAmt(by[c]); }).join(' + ');
+}
 
 // Payments YY recorded before this app existed, carried from the Google Sheet
 // (snapshot 18 Jul 2026). Seeded ONCE and never over an existing value, so unticking
@@ -515,7 +596,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-05a';
+var BUILD = '2026-09-05b';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
@@ -527,7 +608,12 @@ function todayStr(){
 var state = {
   tab:'add', marketView:'card', type:'expense', amount:'0', currency:'MYR', category:null, payMethod:null, note:'',
   date: todayStr(),
-  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false, infoSheetOpen:false, taSheetOpen:false, billOpen:null, editing:null
+  transactions:[], loading:true, currencySheetOpen:false, pmSheetOpen:false, infoSheetOpen:false, taSheetOpen:false, billOpen:null, editing:null,
+  // The bill pay entry has its OWN draft. It must not borrow state.amount /
+  // state.payMethod / state.currency -- those belong to a half-typed Add screen,
+  // and paying a bill would silently rewrite it. pmTarget/curTarget say which of
+  // the two the shared pay-method and currency sheets are editing.
+  pay:null, pmTarget:'add', curTarget:'add'
 };
 var pendingDelete = null;
 var undoTimer = null;
@@ -590,7 +676,7 @@ function mergeTransactions(list){
 // never overwritten, only missing ones are filled, so re-importing the same file twice
 // changes nothing. Accepts this app's export and the standalone Bill Manager's.
 function mergeBills(text){
-  var added = {ticks:0, notes:0};
+  var added = {ticks:0, notes:0, pays:0};
   var m = text.match(/```json\s*([\s\S]*?)```/);
   if(!m) return added;
   var data;
@@ -600,14 +686,20 @@ function mergeBills(text){
   Object.keys(months).forEach(function(ym){
     if(!/^\d{4}-\d{2}$/.test(ym)) return;
     var inc = months[ym] || {};
-    var p = bmLoad('bm_paid_'+ym), n = bmLoad('bm_note_'+ym);
+    var p = bmLoad('bm_paid_'+ym), n = bmLoad('bm_note_'+ym), pay = bmPayLoad(ym);
     Object.keys(inc.paid||{}).forEach(function(id){
       if(p[id]===undefined){ p[id]=inc.paid[id]; added.ticks++; }
     });
     Object.keys(inc.note||{}).forEach(function(id){
       if(!n[id]){ n[id]=inc.note[id]; added.notes++; }
     });
-    bmSave('bm_paid_'+ym,p); bmSave('bm_note_'+ym,n);
+    // Same merge rule as the tick and the note: fill a gap, never overwrite. A bill that
+    // already has payment records on this phone keeps them.
+    Object.keys(inc.pay||{}).forEach(function(id){
+      var e = pay[id];
+      if(!e || !(e.recs||[]).length){ pay[id]=inc.pay[id]; added.pays++; }
+    });
+    bmSave('bm_paid_'+ym,p); bmSave('bm_note_'+ym,n); bmPaySave(ym,pay);
   });
   return added;
 }
@@ -642,9 +734,10 @@ function handleImportFile(ev){
       await persist();
       render();
       var bits = [];
-      if(res.added || !bres.ticks && !bres.notes) bits.push(res.added + ' txn');
+      if(res.added || !bres.ticks && !bres.notes && !bres.pays) bits.push(res.added + ' txn');
       if(bres.ticks) bits.push(bres.ticks + ' tick');
       if(bres.notes) bits.push(bres.notes + ' note');
+      if(bres.pays) bits.push(bres.pays + ' payment');
       if(accts) bits = [accts + (accts===1 ? ' account' : ' accounts')];
       showToast(bits.join(' &middot; ') + ' imported' +
                 (res.skipped ? ' &middot; ' + res.skipped + ' already had' : ''));
@@ -723,12 +816,18 @@ function updateSaveButtonState(){
 }
 
 function selectCategory(id){ state.category = id; render(); }
-function selectPayMethod(id){
-  state.payMethod = PAY_METHODS_BY_ID[id] || null;
+// `target` is passed EXPLICITLY by every call site. Relying on state.pmTarget alone was
+// wrong and shipped broken for one build: the inline chips inside a bill's pay block set
+// no target, so tapping one wrote CIMB MY into a half-typed Add screen instead of into
+// the payment. Caught by asserting the Add draft was untouched after a pay.
+function selectPayMethod(id, target){
+  var pm = PAY_METHODS_BY_ID[id] || null;
+  if((target || state.pmTarget) === 'pay' && state.pay) state.pay.pm = pm ? pm.id : null;
+  else state.payMethod = pm;
   state.pmSheetOpen = false;
   render();
 }
-function openPmSheet(){ state.pmSheetOpen = true; render(); }
+function openPmSheet(target){ state.pmTarget = target || 'add'; state.pmSheetOpen = true; render(); }
 function closePmSheet(){ state.pmSheetOpen = false; render(); }
 
 function openInfoSheet(){ state.infoSheetOpen = true; render(); }
@@ -746,9 +845,16 @@ function mruPayMethods(){
   return out;
 }
 
-function openCurrencySheet(){ state.currencySheetOpen = true; render(); }
+function openCurrencySheet(target){ state.curTarget = target || 'add'; state.currencySheetOpen = true; render(); }
 function closeCurrencySheet(){ state.currencySheetOpen = false; render(); }
-function selectCurrency(code){ state.currency = code; state.currencySheetOpen = false; persist(); render(); }
+function selectCurrency(code){
+  // Only the Add screen's currency is the DEFAULT that persists. A bill settled
+  // once in SGD must not change what the next expense defaults to.
+  if(state.curTarget === 'pay' && state.pay){ state.pay.cur = code; }
+  else { state.currency = code; persist(); }
+  state.currencySheetOpen = false;
+  render();
+}
 
 // Selected calendar date (state.date, for backdating) + the real current
 // time-of-day, as a local Date -> ISO string. Keeps history sorting sane —
@@ -913,7 +1019,12 @@ async function exportMonth(){
 
   var rows = list.map(function(t){
     var d = new Date(t.date);
-    var dateStr = d.toISOString().slice(0,10);
+    // LOCAL date, not UTC's. toISOString() is UTC, so in SGT (+8) everything entered
+    // between midnight and 08:00 exported under the PREVIOUS day -- and a backdated bill
+    // payment is exactly the kind of row that lands there. monthKey() below already
+    // groups on local, so the two disagreed. Found 2026-09-05 building R40.
+    var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' +
+                  String(d.getDate()).padStart(2,'0');
     var timeStr = d.toTimeString().slice(0,5);
     var sym = CURRENCIES[t.currency] || t.currency;
     var amt = (t.amountUnknown || t.amount == null)
@@ -935,10 +1046,22 @@ async function exportMonth(){
   // app's button names. null = TA will surface it as Unidentified for YY.
   var listForExport = list.map(function(t){
     var o = {}; for(var k in t) o[k] = t[k];
+    // `date` is a UTC timestamp; the phone's LOCAL calendar day is the one YY means and
+    // the one the table above prints. They disagree for anything entered before 08:00
+    // SGT, so the local day travels explicitly rather than being re-derived downstream.
+    var ld = new Date(t.date);
+    o.local_date = ld.getFullYear() + '-' + String(ld.getMonth()+1).padStart(2,'0') + '-' +
+                   String(ld.getDate()).padStart(2,'0');
     // t.category is the stored category OBJECT {id,emoji,label}, not an id string --
     // passing the object gave every exported row ta_category:null from P6 until
     // 2026-08-25. Caught only by exporting a row saved through the real save path.
-    o.ta_category = taCategory(t.category && t.category.id ? t.category.id : t.category);
+    // A bill payment already knows its TA category (taForBill, at the moment it was
+    // recorded) and its synthetic category id 'bill_<id>' is deliberately NOT in TA_MAP.
+    // Without this line every bill payment would export as ta_category:null and land in
+    // TA as Unidentified -- the same class of bug as the P6 category-object one below.
+    o.ta_category = t.billRef && t.taCategory
+      ? t.taCategory
+      : taCategory(t.category && t.category.id ? t.category.id : t.category);
     return o;
   });
   // Bills travel in the SAME file as the transactions -- one export is the whole
@@ -949,9 +1072,12 @@ async function exportMonth(){
   try{
     for(var bi=0; bi<localStorage.length; bi++){
       var lk = localStorage.key(bi);
-      var bmm = /^bm_(paid|note)_(\d{4}-\d{2})$/.exec(lk);
+      // `pay` joined paid/note here on 2026-09-05 (R40). An export that carried the
+      // tick but not the payment records would restore a phone that says PAID with no
+      // amount and no method -- exactly the state R40 exists to end.
+      var bmm = /^bm_(paid|note|pay)_(\d{4}-\d{2})$/.exec(lk);
       if(!bmm) continue;
-      billsOut[bmm[2]] = billsOut[bmm[2]] || {paid:{}, note:{}};
+      billsOut[bmm[2]] = billsOut[bmm[2]] || {paid:{}, note:{}, pay:{}};
       billsOut[bmm[2]][bmm[1]] = JSON.parse(localStorage.getItem(lk)||'{}');
     }
   }catch(e){}
@@ -960,7 +1086,7 @@ async function exportMonth(){
     nTick += Object.keys(billsOut[k].paid||{}).filter(function(i){return billsOut[k].paid[i];}).length;
     nNote += Object.keys(billsOut[k].note||{}).filter(function(i){return billsOut[k].note[i];}).length;
   });
-  var jsonBlock = JSON.stringify({month: ym, generated: generated, schema: 'ledger-app/3',
+  var jsonBlock = JSON.stringify({month: ym, generated: generated, schema: 'ledger-app/4',
     taxonomy: 'i001 taxonomy.json 2026-08-22', transactions: listForExport, totals: totals,
     bills: billsOut, bill_register: BILLS.length}, null, 2);
 
@@ -973,14 +1099,17 @@ async function exportMonth(){
     (Object.keys(billsOut).length
       ? '## Bills — payment record\n\n' + nTick + ' paid tick(s), ' + nNote +
         ' note(s), against a ' + BILLS.length + '-bill register.\n\n' +
-        '| Month | Bill | Paid | Note |\n|---|---|---|---|\n' +
+        '| Month | Bill | Paid | Amount | Note |\n|---|---|---|---|---|\n' +
         Object.keys(billsOut).sort().map(function(k){
           var d=billsOut[k], seen={}, out=[];
           Object.keys(d.paid||{}).forEach(function(i){seen[i]=1;});
           Object.keys(d.note||{}).forEach(function(i){seen[i]=1;});
           Object.keys(seen).sort().forEach(function(id){
             var b=null; for(var q=0;q<BILLS.length;q++) if(BILLS[q].id===id) b=BILLS[q];
+            var pe = (d.pay||{})[id];
+            var amtCol = pe ? payTotalText({recs:(pe.recs||[])}) : '';
             out.push('| '+k+' | '+(b?b.nm:id)+' | '+((d.paid||{})[id]?'PAID':'')+' | '+
+                     amtCol+' | '+
                      String((d.note||{})[id]||'').replace(/\|/g,'/')+' |');
           });
           return out.join('\n');
@@ -1029,16 +1158,19 @@ function categoryRowHTML(){
 // Inline row = the 3 most-recently-used methods (chosen 2026-08-20, Option A)
 // plus the current selection if it isn't already one of those, plus a "More"
 // chip that opens the full grouped sheet for the other 12+.
-function payMethodRowHTML(){
+function payMethodRowHTML(target){
+  target = target || 'add';
   var mru = mruPayMethods();
-  var cur = state.payMethod;
+  var cur = target==='pay'
+    ? (state.pay && state.pay.pm ? PAY_METHODS_BY_ID[state.pay.pm] : null)
+    : state.payMethod;
   if(cur && !mru.some(function(p){ return p.id === cur.id; })) mru = [cur].concat(mru);
   var chips = mru.map(function(p){
     var sel = cur && cur.id === p.id ? ' selected' : '';
-    return '<button class="pm-chip' + sel + '" onclick="selectPayMethod(\'' + p.id + '\')">' +
+    return '<button class="pm-chip' + sel + '" onclick="selectPayMethod(\'' + p.id + '\',\'' + target + '\')">' +
       '<span>' + p.emoji + '</span><span class="pm-label">' + p.label + '</span></button>';
   }).join('');
-  chips += '<button class="pm-chip more" onclick="openPmSheet()"><span>&#8943;</span><span class="pm-label">More</span></button>';
+  chips += '<button class="pm-chip more" onclick="openPmSheet(\'' + target + '\')"><span>&#8943;</span><span class="pm-label">More</span></button>';
   return '<div class="pm-row">' + chips + '</div>';
 }
 
@@ -1046,9 +1178,11 @@ function pmSheetHTML(){
   var body = PAY_METHOD_GROUPS.map(function(g){
     return '<div class="pm-group-label">' + escapeHtml(g.label) + '</div><div class="pm-grid">' +
       g.items.map(function(it){
-        var sel = state.payMethod && state.payMethod.id === it.id ? ' selected' : '';
+        var curPm = state.pmTarget==='pay' && state.pay ? state.pay.pm
+                    : (state.payMethod ? state.payMethod.id : null);
+        var sel = curPm === it.id ? ' selected' : '';
         var ph = it.placeholder ? ' placeholder' : '';
-        return '<button class="pm-item' + sel + ph + '" onclick="selectPayMethod(\'' + it.id + '\')">' +
+        return '<button class="pm-item' + sel + ph + '" onclick="selectPayMethod(\'' + it.id + '\',\'' + state.pmTarget + '\')">' +
           '<span class="pm-icon">' + g.icon + '</span><span class="pm-label">' + escapeHtml(it.label) + '</span></button>';
       }).join('') + '</div>';
   }).join('');
@@ -1103,7 +1237,7 @@ function addScreenHTML(){
     '<input type="date" class="date-input" value="' + state.date + '" max="' + todayStr() +
       '" aria-label="Date" onchange="state.date=this.value||todayStr();">' +
     infoButtonHTML() +
-    '<button class="currency-pill" onclick="openCurrencySheet()">' + state.currency + ' ▾</button></div></div>' +
+    '<button class="currency-pill" onclick="openCurrencySheet(\'add\')">' + state.currency + ' ▾</button></div></div>' +
     entrySegmentedHTML() +
     (state.editing ? '<div class="editing-bar">Editing an earlier entry' +
        '<button onclick="cancelEdit()">Cancel</button></div>' : '') +
@@ -1227,7 +1361,8 @@ function tabbarHTML(){
 
 function currencySheetHTML(){
   var items = Object.keys(CURRENCIES).map(function(code){
-    return '<button class="sheet-item ' + (state.currency===code?'selected':'') + '" onclick="selectCurrency(\'' + code + '\')">' +
+    var curCode = state.curTarget==='pay' && state.pay ? state.pay.cur : state.currency;
+    return '<button class="sheet-item ' + (curCode===code?'selected':'') + '" onclick="selectCurrency(\'' + code + '\')">' +
       '<span class="sheet-sym">' + CURRENCIES[code] + '</span><span class="sheet-code">' + code + '</span></button>';
   }).join('');
   return '<div class="sheet-backdrop" onclick="closeCurrencySheet()">' +
@@ -1280,16 +1415,146 @@ function shiftBillMonth(n){
   render();
 }
 function toggleBill(id){
-  var k='bm_paid_'+bmKey(billMonth), s=bmLoad(k);
+  var ym = bmKey(billMonth), k='bm_paid_'+ym, s=bmLoad(k);
+  // Unticking a bill that has recorded payments has to go the whole way -- records and
+  // their ledger entries too, or TA keeps a payment the bill says never happened.
+  if(s[id] && payEntry(ym, id).recs.length){ unpayBill(id); return; }
   s[id] = !s[id]; bmSave(k,s);
   showToast(s[id] ? 'Marked paid' : 'Unticked');
   render();
 }
-function openBill(id){ state.billOpen = id; render(); }
-function closeBill(){ state.billOpen = null; render(); }
+function openBill(id){
+  state.billOpen = id;
+  var ym = bmKey(billMonth), e = payEntry(ym, id), b = billById(id);
+  state.pay = {
+    id: id, ym: ym,
+    amt: '',
+    // Defaulted per bill, so the common case is zero taps. `cur` is on the register
+    // (SGD for the two SG cards and Gomo); everything else is billed in MYR.
+    cur: (b && b.cur) || 'MYR',
+    // Whatever YY paid this bill with last is overwhelmingly what she will use again.
+    pm: (e.recs.length ? e.recs[e.recs.length-1].pm : null) || lastPmForBill(id),
+    // Backdating is the NORMAL case here, not the exception: YY's August rows record
+    // payments made in July. Today is only the starting point.
+    date: todayStr(),
+    n: ''
+  };
+  render();
+}
+function closeBill(){ state.billOpen = null; state.pay = null; render(); }
+function billById(id){
+  for(var i=0;i<BILLS.length;i++) if(BILLS[i].id===id) return BILLS[i];
+  return null;
+}
+// The pay method used for this same bill in any earlier month. A bill is nearly always
+// settled from the same account, so this is the highest-value default available.
+function lastPmForBill(id){
+  try{
+    var keys=[];
+    for(var i=0;i<localStorage.length;i++){
+      var m=/^bm_pay_(\d{4}-\d{2})$/.exec(localStorage.key(i));
+      if(m) keys.push(m[1]);
+    }
+    keys.sort().reverse();
+    for(var k=0;k<keys.length;k++){
+      var e = payEntry(keys[k], id);
+      for(var r=e.recs.length-1;r>=0;r--) if(e.recs[r].pm) return e.recs[r].pm;
+    }
+  }catch(e){}
+  return null;
+}
+// The free-text half. It edits `hand` -- the part of the note that is YY's own words --
+// and never touches a generated payment line.
 function setBillNote(id, v){
-  var k='bm_note_'+bmKey(billMonth), n=bmLoad(k);
-  n[id]=v; bmSave(k,n);
+  var ym = bmKey(billMonth), m = bmPayLoad(ym), e = payEntry(ym, id);
+  e.hand = v;
+  m[id] = e; bmPaySave(ym, m);
+  syncBillNote(ym, id);
+}
+
+// One tap: record the payment, tick the bill, book it to TA. This is the whole point of
+// R40 -- before it, the amount and the method had to go in through Add+ on a second
+// screen, or not at all.
+async function savePayment(){
+  var pd = state.pay; if(!pd) return;
+  var b = billById(pd.id); if(!b) return;
+  var raw = String(pd.amt).replace(/,/g,'').trim();
+  var amt = raw === '' ? null : parseFloat(raw);
+  if(amt != null && !(amt > 0)) amt = null;   // "0" means nothing was owed, not RM0.00
+  var ym = pd.ym, m = bmPayLoad(ym), e = payEntry(ym, pd.id);
+
+  // First payment on a bill that already carried free text: that text is YY's, so it is
+  // captured as `hand` before anything is generated over the top of it.
+  if(e.hand == null){
+    var existing = (bmLoad('bm_note_'+ym))[pd.id] || '';
+    e.hand = existing;
+  }
+
+  var rec = {d: pd.date, amt: amt, cur: pd.cur, pm: pd.pm || null, n: (pd.n||'').trim(), txId: null};
+
+  // The ledger transaction. It carries billRef so "Mark unpaid" can find and remove it,
+  // and it reaches TA through the existing Export -> import_ledger_app.py path, which
+  // only ever PROPOSES matches against bank rows -- so this cannot double-count.
+  if(amt != null){
+    var taName = taForBill(b);
+    var cat = {id: 'bill_' + b.id, emoji: '🧾', label: b.nm};
+    var tx = {
+      id: 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      type: 'expense', amount: amt, amountUnknown: false, currency: pd.cur,
+      category: cat, payMethod: pd.pm ? PAY_METHODS_BY_ID[pd.pm] : null,
+      note: b.nm + ' — bill ' + ym, date: billPayDateISO(pd.date),
+      billRef: {id: b.id, ym: ym}, taCategory: taName
+    };
+    rec.txId = tx.id;
+    state.transactions.push(tx);
+    sortTransactions();
+    await persist();
+  }
+
+  e.recs.push(rec);
+  m[pd.id] = e; bmPaySave(ym, m);
+  syncBillNote(ym, pd.id);
+
+  var paidStore = bmLoad('bm_paid_'+ym);
+  paidStore[pd.id] = true; bmSave('bm_paid_'+ym, paidStore);
+
+  closeBill();
+  showToast(amt != null
+    ? 'Paid ' + (CURRENCIES[pd.cur]||pd.cur) + trimAmt(amt)
+    : 'Marked paid');
+}
+
+// Payment date + the current time-of-day, so a backdated payment sorts onto its own day
+// rather than to the top of History. Same trick combinedDateISO() uses for Add.
+function billPayDateISO(dstr){
+  var now = new Date(), p = String(dstr).split('-').map(Number);
+  return new Date(p[0], p[1]-1, p[2], now.getHours(), now.getMinutes(), now.getSeconds()).toISOString();
+}
+
+// Undo, end to end. The tick, the payment records AND the transactions they created all
+// go together -- a payment whose transaction outlived it would quietly overstate TA.
+async function unpayBill(id){
+  var ym = bmKey(billMonth), m = bmPayLoad(ym), e = payEntry(ym, id);
+  var txIds = {};
+  e.recs.forEach(function(r){ if(r.txId) txIds[r.txId] = true; });
+  var before = state.transactions.length;
+  state.transactions = state.transactions.filter(function(t){ return !txIds[t.id]; });
+  if(state.transactions.length !== before) await persist();
+
+  var hand = e.hand;
+  e.recs = [];
+  if(hand){ m[id] = {recs: [], hand: hand}; } else { delete m[id]; }
+  bmPaySave(ym, m);
+
+  var n = bmLoad('bm_note_'+ym);
+  if(hand) n[id] = hand; else delete n[id];
+  bmSave('bm_note_'+ym, n);
+
+  var paidStore = bmLoad('bm_paid_'+ym);
+  paidStore[id] = false; bmSave('bm_paid_'+ym, paidStore);
+
+  closeBill();
+  showToast('Unticked' + (before !== state.transactions.length ? ' — entry removed too' : ''));
 }
 
 var BILL_MONTHS=['January','February','March','April','May','June','July','August',
@@ -1323,11 +1588,13 @@ function billsScreenHTML(){
       var manual=b.mode==='manual';
       var mark = b.mode==='auto'?'A' : b.mode==='tenant'?'T' : (paid[b.id]?'&#10003;':'');
       var note=notes[b.id]||'';
+      var amtLine=payTotalText(payEntry(key,b.id));
       listHTML+='<div class="bm-item '+st+'">'
         + '<button class="bm-tick '+st+'" '+(manual?'onclick="toggleBill(\''+b.id+'\')"':'disabled')+'>'+mark+'</button>'
         + '<button class="bm-body" onclick="openBill(\''+b.id+'\')">'
         +   '<span class="bm-nm">'+escapeHtml(b.nm)+'</span>'
         +   '<span class="bm-sub">'+escapeHtml(b.grp)+' &middot; '+escapeHtml(b.chan)+'</span>'
+        +   (amtLine?'<span class="bm-paid-amt">'+escapeHtml(amtLine)+'</span>':'')
         +   (note?'<span class="bm-note">'+escapeHtml(note)+'</span>':'')
         + '</button>'
         + (st==='over'||st==='due' ? '<span class="bm-tag '+st+'">'+ST_LABEL[st]+'</span>' : '')
@@ -1372,6 +1639,12 @@ function billSheetHTML(){
     + '<div class="sheet" onclick="event.stopPropagation()">'
     +   '<div class="sheet-handle"></div>'
     +   '<div class="sheet-title">'+escapeHtml(b.nm)+'</div>'
+    +   (b.info?'<div class="ta-note" style="margin-top:0">'+escapeHtml(b.info)+'</div>':'')
+    // Pay block FIRST. The sheet is capped at 70vh, so on a 375x667 phone anything below
+    // the reference rows starts off-screen -- and the one thing YY opens a bill to do
+    // was down there. Reference detail is what you scroll TO, not through.
+    +   (b.mode==='manual' ? payBlockHTML(b, key) : '')
+    +   '<div class="pay-label" style="margin-top:16px">This bill</div>'
     +   row('Category', b.grp)
     +   (acctFor(b.id) ? row('Account', acctFor(b.id))
          : '<div class="ta-row"><span class="ta-from">Account</span><span class="ta-to" style="color:var(--text-faint)">not on this phone &mdash; Import ledger_accounts.json</span></div>')
@@ -1380,17 +1653,109 @@ function billSheetHTML(){
     +   row('Pay channel', b.chan)
     +   row('Frequency', b.freq)
     +   row('Books to (TA)', ta || 'not mapped')
-    +   (b.info?'<div class="ta-note">'+escapeHtml(b.info)+'</div>':'')
-    +   '<div class="note-wrap" style="padding:10px 0 4px"><input class="note-input" '
-    +     'placeholder="Note — how you paid it" value="'+escapeHtml(notes[b.id]||'')+'" '
-    +     'oninput="setBillNote(\''+b.id+'\', this.value)"></div>'
+    +   (function(){
+          var e = payEntry(key, b.id);
+          var val = e.hand != null ? e.hand : (notes[b.id] || '');
+          // The one case where the note can read twice: a bill whose note was ALREADY a
+          // payment history (YY's own August wording) and which then gets a payment
+          // recorded on top. Nothing is parsed out of her words -- that risks mangling
+          // them -- so instead the box says plainly that clearing it is safe.
+          var dup = !!(e.recs.length && val);
+          return '<div class="note-wrap" style="padding:10px 0 4px"><input class="note-input" '
+            + 'placeholder="Note — anything else about this bill" value="'+escapeHtml(val)+'" '
+            + 'oninput="setBillNote(\''+b.id+'\', this.value)">'
+            + (dup ? '<div class="ta-note" style="margin:6px 2px 0">Your own words, kept. '
+                     + 'The payments above are added in front of them &mdash; clear this box if it '
+                     + 'now says the same thing twice.</div>' : '')
+            + '</div>';
+        })()
     +   (b.mode==='manual'
-        ? '<button class="save-btn" style="margin-top:10px" onclick="toggleBill(\''+b.id+'\');closeBill();">'
-          + (paid[b.id]?'Mark unpaid':'Mark paid') + '</button>'
+        ? ''
         : '<div class="ta-note">'+(b.mode==='auto'
              ? 'Pays itself — BM reconciles it against the bank later.'
              : 'The tenant pays this during the Henge tenancy.')+'</div>')
     + '</div></div>';
+}
+
+// R40's one entry interface: amount + method + date, one button, on the bill's own
+// sheet. Add+ is never needed for a bill.
+function payBlockHTML(b, ym){
+  var e = payEntry(ym, b.id), paid = bmLoad('bm_paid_'+ym)[b.id];
+  var pd = state.pay || {amt:'', cur:(b.cur||'MYR'), pm:null, date:todayStr()};
+  var sym = CURRENCIES[pd.cur] || pd.cur;
+
+  var recsHTML = '';
+  if(e.recs.length){
+    recsHTML = '<div class="pay-recs">' + e.recs.map(function(r,i){
+      var pm = r.pm && PAY_METHODS_BY_ID[r.pm] ? PAY_METHODS_BY_ID[r.pm].label : '—';
+      var d = String(r.d).split('-');
+      return '<div class="pay-rec"><span>' + Number(d[1]) + '/' + Number(d[2]) + '</span>'
+        + '<span>' + escapeHtml(pm) + '</span>'
+        + '<span class="amt">' + (r.amt==null ? '—' : (CURRENCIES[r.cur]||r.cur) + trimAmt(r.amt)) + '</span>'
+        + '<button class="del" onclick="removePayment(' + i + ')" aria-label="Remove this payment">&times;</button>'
+        + '</div>';
+    }).join('') + '</div>';
+    var tot = payTotalText(e);
+    if(tot) recsHTML += '<div class="pay-total"><span>Paid so far</span><b>' + tot + '</b></div>';
+  }
+
+  var amtVal = pd.amt === '' ? '' : escapeHtml(String(pd.amt));
+  return '<div class="pay-block">'
+    + recsHTML
+    + '<div class="pay-label">' + (e.recs.length ? 'Add another payment' : 'Record a payment') + '</div>'
+    + '<div class="pay-amt-row">'
+    +   '<button class="currency-pill" onclick="openCurrencySheet(\'pay\')">' + pd.cur + ' &#9662;</button>'
+    +   '<input class="pay-amt" inputmode="decimal" placeholder="' + sym + '0.00" value="' + amtVal + '" '
+    +     'oninput="state.pay.amt=this.value;updatePayButton();">'
+    +   '<input type="date" class="date-input" value="' + pd.date + '" max="' + todayStr() + '" '
+    +     'aria-label="Payment date" onchange="state.pay.date=this.value||todayStr();">'
+    + '</div>'
+    + '<div class="pay-label">Paid with</div>'
+    + payMethodRowHTML('pay')
+    + '<button class="save-btn" id="payBtn" style="margin:12px 0 0;width:100%" onclick="savePayment()">'
+    +   payButtonLabel() + '</button>'
+    + (paid ? '<button class="unpay-btn" onclick="unpayBill(\'' + b.id + '\')">'
+              + (e.recs.length ? (e.recs.length>1
+                                   ? 'Mark unpaid — removes ' + e.recs.length + ' payments and their entries'
+                                   : 'Mark unpaid — removes 1 payment and its entry')
+                               : 'Mark unpaid') + '</button>'
+            : '')
+    + '</div>';
+}
+
+// The button says what it will do, not what it is called -- same rule the Add screen's
+// save button follows. An amount is OPTIONAL: two of YY's own August notes are
+// "check outstanding 0" and "checked no outstanding", i.e. paid, nothing owed.
+function payButtonLabel(){
+  var pd = state.pay; if(!pd) return 'Mark paid';
+  var raw = String(pd.amt).replace(/,/g,'').trim();
+  var amt = parseFloat(raw);
+  return (raw !== '' && amt > 0)
+    ? 'Mark paid — ' + (CURRENCIES[pd.cur]||pd.cur) + trimAmt(amt)
+    : 'Mark paid — no amount';
+}
+// Typed into directly rather than through render(), because re-rendering on every
+// keystroke would drop the keyboard and the caret.
+function updatePayButton(){
+  var el = document.getElementById('payBtn');
+  if(el) el.textContent = payButtonLabel();
+}
+// Remove one recorded payment (and its ledger entry) without unticking the bill.
+async function removePayment(i){
+  var ym = bmKey(billMonth), id = state.billOpen;
+  if(!id) return;
+  var m = bmPayLoad(ym), e = payEntry(ym, id);
+  var r = e.recs[i]; if(!r) return;
+  if(r.txId){
+    var before = state.transactions.length;
+    state.transactions = state.transactions.filter(function(t){ return t.id !== r.txId; });
+    if(state.transactions.length !== before) await persist();
+  }
+  e.recs.splice(i,1);
+  m[id] = e; bmPaySave(ym, m);
+  syncBillNote(ym, id);
+  render();
+  showToast('Payment removed');
 }
 
 function infoSheetHTML(){
