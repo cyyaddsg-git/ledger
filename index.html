@@ -206,6 +206,19 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .ta-to.open{color:var(--text-dim);font-weight:400;font-style:italic;}
 .ta-note{font-size:11px;color:var(--text-dim);line-height:1.5;margin:8px 2px 12px;}
 .ta-btn{background:none;border:1px solid var(--border);border-radius:999px;color:var(--text-dim);font-size:11px;padding:3px 11px;font-family:inherit;}
+/* "What I still owe you" pill (YY 2026-09-05: a button at the category row that pops up
+   the raw material still pending). Amber, because it is a to-do, not a label -- and it is
+   rendered ONLY when the count is > 0, so a clear list leaves the row exactly as it was. */
+.owe-btn{background:var(--gold-dim);border:1px solid rgba(232,184,75,.45);border-radius:999px;
+  color:var(--gold);font-size:11px;font-weight:600;padding:3px 11px;font-family:inherit;}
+.owe-row{display:flex;align-items:baseline;gap:8px;padding:7px 2px;border-bottom:1px solid var(--border);font-size:13px;}
+.owe-row .m{font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);flex:0 0 60px;}
+.owe-row .s{flex:1;min-width:0;}
+.owe-row .d{font-size:11px;white-space:nowrap;}
+.owe-row .d.late{color:var(--expense);font-weight:600;}
+.owe-row .d.due{color:var(--gold);}
+.owe-row .d.soon{color:var(--text-faint);}
+.owe-as-of{font-size:10.5px;color:var(--text-faint);margin:10px 2px 0;}
 .tx-row.pending{opacity:.9;}
 .tx-amount.unknown{color:var(--text-faint);font-style:italic;}
 .tx-edit{flex:0 0 auto;color:var(--text-faint);padding:4px;}
@@ -596,7 +609,64 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-05d';
+var BUILD = '2026-09-05e';
+
+// ---- "What I still owe you": the statements the intake is waiting on.
+// YY 2026-09-05: "add a button at the category that pops up the raw material that still
+// pending me to provide". The phone cannot reach the Mac or the Drive checklist, so the
+// scheduled intake publishes a small pending.json NEXT TO this page and the app fetches
+// it. It carries month + source label + how late, and nothing else -- no account numbers,
+// no amounts, no filenames. (The source labels are already in BILLS above, so this adds
+// no institution the page did not already name.)
+// Cached in localStorage so the pill is right on a cold launch and offline; the sheet
+// always prints the date it was generated, so stale can never read as current.
+var OWE = null;
+function oweLoad(){
+  try{ OWE = JSON.parse(localStorage.getItem('owe_v1') || 'null'); }catch(e){ OWE = null; }
+}
+function oweFetch(){
+  fetch('pending.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      if(!j || !Array.isArray(j.items)) return;
+      OWE = j;
+      try{ localStorage.setItem('owe_v1', JSON.stringify(j)); }catch(e){}
+      render();
+    })
+    .catch(function(){ /* offline, or never published -- keep whatever is cached */ });
+}
+function oweCount(){ return OWE && OWE.items ? OWE.items.length : 0; }
+function openOweSheet(){ state.oweSheetOpen = true; render(); }
+function closeOweSheet(){ state.oweSheetOpen = false; render(); }
+
+function oweSheetHTML(){
+  var items = (OWE && OWE.items) || [];
+  var body = items.length
+    ? items.map(function(it){
+        var cls = it.days > 0 ? 'late' : (it.status === 'due now' ? 'due' : 'soon');
+        var right = it.days > 0 ? it.days + 'd overdue'
+                  : (it.status || 'due now');
+        return '<div class="owe-row"><span class="m">' + escapeHtml(it.month) + '</span>'
+          + '<span class="s">' + escapeHtml(it.source) + '</span>'
+          + '<span class="d ' + cls + '">' + escapeHtml(right) + '</span></div>';
+      }).join('')
+    : '<div class="ta-note">Nothing outstanding &mdash; everything the pipeline expects has been filed.</div>';
+  var late = items.filter(function(i){ return i.days > 0; }).length;
+  return '<div class="sheet-backdrop" onclick="closeOweSheet()">'
+    + '<div class="sheet" onclick="event.stopPropagation()">'
+    +   '<div class="sheet-handle"></div>'
+    +   '<div class="sheet-title">Still waiting on you</div>'
+    +   (items.length ? '<div class="ta-note" style="margin-top:0">' + items.length
+          + ' statement' + (items.length>1?'s':'') + ' to upload'
+          + (late ? ', ' + late + ' already overdue' : '')
+          + '. Drop them anywhere in the Drive <code>raw/</code> folder &mdash; any filename.</div>' : '')
+    +   body
+    +   (OWE && OWE.generated
+          ? '<div class="owe-as-of">As of ' + escapeHtml(String(OWE.generated).slice(0,16).replace('T',' '))
+            + '. The Mac refreshes this once a day.</div>'
+          : '<div class="owe-as-of">Never published yet &mdash; the Mac has not run since this was added.</div>')
+    + '</div></div>';
+}
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
@@ -613,7 +683,7 @@ var state = {
   // state.payMethod / state.currency -- those belong to a half-typed Add screen,
   // and paying a bill would silently rewrite it. pmTarget/curTarget say which of
   // the two the shared pay-method and currency sheets are editing.
-  pay:null, pmTarget:'add', curTarget:'add'
+  pay:null, pmTarget:'add', curTarget:'add', oweSheetOpen:false
 };
 var pendingDelete = null;
 var undoTimer = null;
@@ -1250,7 +1320,10 @@ function addScreenHTML(){
       '<span class="amount-symbol">' + CURRENCIES[state.currency] + '</span>' +
       '<span class="amount" id="amountVal">' + state.amount + '</span>' +
     '</div></div>' +
-    '<div class="cat-head"><span class="cat-head-l">Category</span><button class="ta-btn" onclick="openTaSheet()">= TA category</button></div>' +
+    '<div class="cat-head"><span class="cat-head-l">Category</span>' +
+      (oweCount() ? '<button class="owe-btn" onclick="openOweSheet()">' + oweCount() +
+                    ' to upload</button>' : '') +
+      '<button class="ta-btn" onclick="openTaSheet()">= TA category</button></div>' +
     categoryRowHTML() +
     payMethodRowHTML() +
     '<div class="note-wrap"><input class="note-input" placeholder="Add a note (optional)" value="' + escapeHtml(state.note) + '" oninput="state.note=this.value" /></div>' +
@@ -1800,6 +1873,7 @@ function render(){
     (state.pmSheetOpen ? pmSheetHTML() : '') +
     (state.infoSheetOpen ? infoSheetHTML() : '') +
     (state.taSheetOpen ? taSheetHTML() : '') +
+    (state.oweSheetOpen ? oweSheetHTML() : '') +
     (state.billOpen ? billSheetHTML() : '');
   updateSaveButtonState();
 }
@@ -1825,7 +1899,9 @@ function checkForNewBuild(){
 }
 
 document.addEventListener('touchstart', function(){}, {passive:true});
+oweLoad();          // cached copy first, so the pill is right before any network
 loadData();
+oweFetch();         // then refresh in the background; failure is silent by design
 checkForNewBuild();
 </script>
 </body>
