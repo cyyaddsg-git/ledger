@@ -596,7 +596,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-05c';
+var BUILD = '2026-09-05d';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
@@ -1477,7 +1477,8 @@ function setBillNote(id, v){
   syncBillNote(ym, id);
 }
 
-// One tap: record the payment, tick the bill, book it to TA. This is the whole point of
+// One tap: record the payment, tick the bill, and carry a TA category on the entry as
+// REFERENCE. This is the whole point of
 // R40 -- before it, the amount and the method had to go in through Add+ on a second
 // screen, or not at all.
 async function savePayment(){
@@ -1497,9 +1498,11 @@ async function savePayment(){
 
   var rec = {d: pd.date, amt: amt, cur: pd.cur, pm: pd.pm || null, n: (pd.n||'').trim(), txId: null};
 
-  // The ledger transaction. It carries billRef so "Mark unpaid" can find and remove it,
-  // and it reaches TA through the existing Export -> import_ledger_app.py path, which
-  // only ever PROPOSES matches against bank rows -- so this cannot double-count.
+  // The ledger transaction. It carries billRef so "Mark unpaid" can find and remove it.
+  // YY, 2026-09-05: "ledger transaction can only be reference, can never be TA input."
+  // So `taCategory` is a HINT for the reference match and nothing more -- the export goes
+  // to import_ledger_app.py, which only ever PROPOSES against bank rows and never writes
+  // TA. verify_all.py now proves that with a planted proposal that changes no TA row.
   if(amt != null){
     var taName = taForBill(b);
     var cat = {id: 'bill_' + b.id, emoji: '🧾', label: b.nm};
@@ -1657,7 +1660,7 @@ function billSheetHTML(){
     +   row('Statement issued', b.stmt==='Np' ? 'previous month' : (b.stmt||''))
     +   row('Pay channel', b.chan)
     +   row('Frequency', b.freq)
-    +   row('Books to (TA)', ta || 'not mapped')
+    +   row('TA category (reference)', ta || 'not mapped')
     +   (function(){
           var e = payEntry(key, b.id);
           var val = e.hand != null ? e.hand : (notes[b.id] || '');
