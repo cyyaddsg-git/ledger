@@ -596,7 +596,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-05b';
+var BUILD = '2026-09-05c';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
@@ -1125,7 +1125,12 @@ async function exportMonth(){
     try{
       var file = new File([blob], filename, {type:'text/markdown'});
       if(navigator.canShare({files:[file]})){
-        await navigator.share({files:[file], title: filename});
+        // FILES ONLY. Passing `title` alongside made iOS share TWO items -- the file and
+        // the title as text -- and Google Drive saved both, so every export landed as
+        // ledger_YYYY-MM.md PLUS a 17-byte ledger_YYYY-MM.md.txt containing nothing but
+        // the filename. YY 2026-09-05: "it exports .md and .md.txt". The name already
+        // travels on the File itself; the title was never doing anything else.
+        await navigator.share({files:[file]});
         showToast('Exported');
         return;
       }
