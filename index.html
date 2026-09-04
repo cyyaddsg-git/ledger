@@ -6,6 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ledger">
+<!-- Home Screen icon. Without this iOS renders a letter tile from the app title,
+     which is why it showed "L". YY 2026-09-05: it shows "M". Re-add the icon to
+     the Home Screen once -- iOS caches the tile it already drew. -->
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 <meta name="theme-color" content="#0F1712">
 <title>Ledger</title>
 <style>
@@ -235,6 +240,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .bm-item.over{border-color:rgba(255,107,107,.55);}
 .bm-item.due{border-color:rgba(232,184,75,.5);}
 .bm-item.paid{opacity:.62;}
+/* YY 2026-09-05: "which also crosses (strikesthrough) the bill of the month".
+   Only the name is struck -- the note underneath is the payment record and has to
+   stay readable. */
+.bm-item.paid .bm-nm{text-decoration:line-through;text-decoration-color:var(--text-dim);}
 .bm-item.auto,.bm-item.tenant{opacity:.55;}
 .bm-tick{flex:0 0 28px;height:28px;border-radius:9px;border:1.5px solid var(--border);
  background:var(--surface-2);color:var(--text-dim);font-size:13px;font-weight:700;}
@@ -336,6 +345,44 @@ var BM_SEED = {
     localStorage.setItem('bm_seed_v1','done');
   }catch(e){}
 })();
+
+// Aug 2026, read off YY's Google Sheet (YY_Bill_Manager.xlsx, last edited 28 Aug) on
+// 2026-09-05. The v1 seed above was an 18-Jul snapshot, so August showed 2 paid when YY
+// had ticked 12 -- which is exactly what YY reported. A SECOND seed under its own flag is
+// needed because seedBills() latches on bm_seed_v1 and never runs again.
+// Merge rules, so nothing YY typed on the phone is destroyed:
+//   paid -- set only where the phone has no value at all.
+//   note -- set where empty, OR where the phone's note is a PREFIX of the sheet's
+//           (YY appended a second payment in the sheet; that is the same note, extended).
+var BM_SEED2 = {
+ '2026-08':{
+   paid:{ski_tnb:1,cc_pbbv:1,cc_pbbq:1,cc_dbs:1,em_tnb:1,ski_wat:1,hg_maint:1,em_maint:1,
+         cc_citi:1,cc_uob:1,em_wat:1,hg_iwk:1},
+   note:{ski_tnb:'8/9 amex 180.9', cc_pbbv:'7/18 rm10000 cimb, 7/21 rm2610.05',
+         cc_pbbq:'7/21 rm220', cc_dbs:'8/9 check outstanding 0', em_tnb:'8/9 amex 205.7',
+         ski_wat:'8/28 pbb visa rm8.45 (of rm21.45 trans)', hg_maint:'8/9 cimb rm638',
+         em_maint:'7/26 rm438.24 cimb', cc_citi:'8/11 checked no outstanding',
+         cc_uob:'8/10 cimb 2979.01', em_wat:'pbb visa rm13 (of rm21.45 trans)'}}
+};
+// NOT seeded, deliberately: the sheet's Sep tab has The Henge Maintenance ticked carrying
+// August's own note ('8/9 cimb rm638'), which is a carried row, not a second payment.
+// Guessing it paid would tick a September bill YY may still owe.
+(function seedBills2(){
+  try{
+    if(localStorage.getItem('bm_seed_v2')) return;
+    Object.keys(BM_SEED2).forEach(function(ym){
+      var p=bmLoad('bm_paid_'+ym), n=bmLoad('bm_note_'+ym), v=BM_SEED2[ym];
+      Object.keys(v.paid).forEach(function(id){ if(p[id]===undefined) p[id]=true; });
+      Object.keys(v.note).forEach(function(id){
+        var cur=n[id]||'';
+        if(!cur || v.note[id].indexOf(cur)===0) n[id]=v.note[id];
+      });
+      bmSave('bm_paid_'+ym,p); bmSave('bm_note_'+ym,n);
+    });
+    localStorage.setItem('bm_seed_v2','done');
+  }catch(e){}
+})();
+
 
 function bmKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function billsDue(d){ var m=d.getMonth()+1;
@@ -468,7 +515,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-08-29a';
+var BUILD = '2026-09-05a';
 
 function todayStr(){
   // local calendar date as YYYY-MM-DD, not UTC's — the UTC-shift trick so
