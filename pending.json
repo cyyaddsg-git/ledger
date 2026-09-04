@@ -1,0 +1,150 @@
+{
+ "generated": "2026-09-05T01:06:29",
+ "count": 24,
+ "items": [
+  {
+   "month": "2026-02",
+   "source": "HLB Home Loan statement (Ember)",
+   "days": 182,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-03",
+   "source": "HLB Home Loan statement (Ember)",
+   "days": 151,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-04",
+   "source": "HLB Home Loan statement (Ember)",
+   "days": 121,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-05",
+   "source": "HLB Home Loan statement (Ember)",
+   "days": 90,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-05",
+   "source": "MBB Savings (bank)",
+   "days": 90,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-05",
+   "source": "Maybank Broker cash (Premier 1 share trading)",
+   "days": 90,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-06",
+   "source": "HLB Home Loan statement (Ember)",
+   "days": 60,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-06",
+   "source": "Maybank Broker cash (Premier 1 share trading)",
+   "days": 60,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-07",
+   "source": "Grab wallet  (one export covers a range)",
+   "days": 29,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-07",
+   "source": "HLB Home Loan statement (Ember)",
+   "days": 29,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-07",
+   "source": "Maybank Amex (card)",
+   "days": 29,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-07",
+   "source": "TNG e-wallet  (one export covers a range)",
+   "days": 29,
+   "status": "overdue"
+  },
+  {
+   "month": "2026-08",
+   "source": "CIMB MY (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "CIMB SG (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "DBS Multiplier (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "Grab wallet  (one export covers a range)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "HLB Home Loan statement (Ember)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "MBB Savings (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "Maybank Amex (card)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "Maybank Broker cash (Premier 1 share trading)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "PBB cards — Visa Signature + Quantum",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "RHB Basic C/A (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "TNG e-wallet  (one export covers a range)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-08",
+   "source": "UOB Mastercard (card)",
+   "days": 0,
+   "status": "due now"
+  }
+ ]
+}
