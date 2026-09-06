@@ -502,6 +502,39 @@ var BM_SEED2 = {
 })();
 
 
+// Sep 2026, restored 2026-09-06 from the app's OWN export ledger_2026-09.md
+// (generated 2026-09-04T16:19Z, sitting in the Drive raw/ folder).
+//
+// WHAT HAPPENED. YY's September ticks and amounts were gone. It was NOT the raw-checklist
+// change -- that diff is additive, and rendering the same stored September data through
+// build 2026-09-05e and 2026-09-06a produces byte-identical bill rows. The cause is the
+// advice given on 2026-09-05: "remove the icon and re-add it once", to fix the Home Screen
+// tile. On iOS a re-added web app gets a FRESH storage bucket; the old one is not carried
+// over. That wiped everything, including bm_seed_v1/v2, so those two seeds re-ran on next
+// launch and restored July and August -- which is why only September looked lost.
+//
+// WHAT COULD BE RESTORED: the five ticks below. The export predates R40 (`pay` joined the
+// export on 2026-09-05), so it carries no amounts and no September notes -- those are gone
+// and cannot be recovered from any file on this machine.
+//
+// Merge-only, like every seed here: a value is written ONLY where the phone has none, so
+// anything YY has re-entered since is never overwritten.
+var BM_SEED3 = {
+ '2026-09':{paid:{cc_pbbv:1, cc_pbbq:1, cc_hlbwise:1, cc_dbs:1, em_tnb:1}, note:{}}
+};
+(function seedBills3(){
+  try{
+    if(localStorage.getItem('bm_seed_v3')) return;
+    Object.keys(BM_SEED3).forEach(function(ym){
+      var p=bmLoad('bm_paid_'+ym), n=bmLoad('bm_note_'+ym), v=BM_SEED3[ym];
+      Object.keys(v.paid).forEach(function(id){ if(p[id]===undefined) p[id]=true; });
+      Object.keys(v.note).forEach(function(id){ if(!n[id]) n[id]=v.note[id]; });
+      bmSave('bm_paid_'+ym,p); bmSave('bm_note_'+ym,n);
+    });
+    localStorage.setItem('bm_seed_v3','done');
+  }catch(e){}
+})();
+
 function bmKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function billsDue(d){ var m=d.getMonth()+1;
   return BILLS.filter(function(b){ return b.freq==='monthly' || (b.dueMonths||[]).indexOf(m)>=0; }); }
@@ -633,7 +666,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-06a';
+var BUILD = '2026-09-06b';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -1899,10 +1932,15 @@ async function removePayment(i){
 
 function infoSheetHTML(){
   var rows = [
+    // FIRST, and stated as a rule rather than a fact, because this exact thing happened:
+    // on 2026-09-05 YY was told to remove and re-add the icon to fix the Home Screen tile.
+    // It wiped every tick, note and amount. The row below already named the hazard; the
+    // advice was given anyway. It is first now so it is read before the tile is prettier.
+    ['NEVER remove this icon', "Removing the Home Screen icon and re-adding it <b>destroys every tick, note and amount</b> &mdash; iOS gives the re-added app a fresh, empty bucket and does not carry the old one over. It happened on 2026-09-05 and cost September. <b>Export first, always.</b> A wrong-looking tile is not worth your data."],
     ['This build', '<b>' + BUILD + '</b> &mdash; the app checks for a newer one each time it is opened cold. '
       + 'If a fix is missing, force-quit from the app switcher and reopen.'],
     ['Where it lives', "<code>localStorage</code> &mdash; a storage bucket tied to THIS Home Screen icon specifically. Not cache, not shared with a Safari tab, doesn't sync anywhere until you tap Export."],
-    ['What deletes it', "Deleting this Home Screen icon and re-adding it &middot; Settings &rarr; Safari &rarr; Clear History and Website Data &middot; Settings &rarr; Safari &rarr; Advanced &rarr; Website Data &rarr; remove this site."],
+    ['What else deletes it', "Settings &rarr; Safari &rarr; Clear History and Website Data &middot; Settings &rarr; Safari &rarr; Advanced &rarr; Website Data &rarr; remove this site."],
     ["What's safe", "Force-quitting the app, restarting your phone, low-storage warnings, normal iOS updates &mdash; none of these touch it."],
     ['Real backup', "None of the above is a guarantee for every edge case. <b>Export regularly and AirDrop it off the phone</b> &mdash; that's the actual insurance, not a courtesy."],
   ];
