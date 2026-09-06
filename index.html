@@ -222,10 +222,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 /* The wordmark IS the way in (YY 2026-09-06: "accessible when click Ledger top left
    button"), so it has to look pressable without becoming a button that shouts. A single
    chevron does it; nothing else on the header changes. */
-.brand-btn{background:none;border:0;padding:0;color:inherit;font:inherit;letter-spacing:inherit;
+.brand-btn{background:none;border:0;padding:0;color:inherit;text-align:left;
   display:inline-flex;align-items:center;gap:3px;}
-.brand-chev{font-size:19px;color:var(--text-faint);font-weight:400;line-height:1;}
-.brand-chev.back{margin-right:1px;}
+/* Typography is NEVER set here -- .brand owns it. The first version used `font:inherit`,
+   a shorthand that silently reset family, size and weight to the body's, and being later
+   in the sheet it beat .brand: the wordmark stopped being Space Grotesk (YY, 2026-09-06). */
+.brand-chev{font-family:-apple-system,sans-serif;font-size:20px;color:var(--text-faint);
+  font-weight:400;line-height:1;margin-right:1px;}
 .rw-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
 .rw-tick{flex:0 0 22px;height:22px;border-radius:7px;border:1.5px solid var(--border);
  display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-faint);background:none;}
@@ -662,7 +665,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-06c';
+var BUILD = '2026-09-06d';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -754,7 +757,7 @@ function rawScreenHTML(){
     +      'ontouchend="rwTouchEnd(event)">'
     + '<div class="app-header">'
     +   '<button class="brand brand-btn" onclick="switchTab(\'add\')">'
-    +     '<span class="brand-chev back">&lsaquo;</span>Raw documents</button>'
+    +     '<span class="brand-chev">&lsaquo;</span>Raw documents</button>'
     +   '<div class="header-actions">' + infoButtonHTML() + '</div></div>'
     + '<div class="bm-nav"><button onclick="shiftRawMonth(-1)">&lsaquo;</button>'
     +   '<div class="bm-mlabel">' + RAW_MONTHS[rawMonth.getMonth()] + ' '
@@ -1414,7 +1417,7 @@ function addScreenHTML(){
   var typeLabel = state.type === 'expense' ? 'Expense' : 'Income';
   return '<div class="add-screen">' +
     importInputHTML() +
-    '<div class="app-header"><button class="brand brand-btn" onclick="switchTab(\'raw\')">Ledger<span class="brand-chev">&rsaquo;</span></button>' +
+    '<div class="app-header"><button class="brand brand-btn" onclick="switchTab(\'raw\')">Ledger</button>' +
     '<div class="header-actions">' +
     // the date sits with the other header pills -- it is ten characters wide, it does
     // not need a row of its own (YY 2026-08-28)
@@ -1462,7 +1465,7 @@ function historyScreenHTML(){
   if(state.transactions.length === 0){
     return '<div class="history-screen" style="flex:1;display:flex;flex-direction:column;">' +
       importInputHTML() +
-      '<div class="app-header"><button class="brand brand-btn" onclick="switchTab(\'raw\')">Ledger<span class="brand-chev">&rsaquo;</span></button>' +
+      '<div class="app-header"><button class="brand brand-btn" onclick="switchTab(\'raw\')">Ledger</button>' +
       '<div class="header-actions">' + infoButtonHTML() +
       '<button class="export-btn import-btn" onclick="triggerImport()">Import</button></div></div>' +
       entrySegmentedHTML() +
@@ -1487,7 +1490,7 @@ function historyScreenHTML(){
   }).join('');
   return '<div class="history-screen">' +
     importInputHTML() +
-    '<div class="app-header"><button class="brand brand-btn" onclick="switchTab(\'raw\')">Ledger<span class="brand-chev">&rsaquo;</span></button>' +
+    '<div class="app-header"><button class="brand brand-btn" onclick="switchTab(\'raw\')">Ledger</button>' +
     '<div class="header-actions">' + infoButtonHTML() +
     '<button class="export-btn import-btn" onclick="triggerImport()">Import</button>' +
     '<button class="export-btn" onclick="exportMonth()">Export</button></div></div>' +
