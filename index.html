@@ -219,6 +219,30 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .owe-row .d.due{color:var(--gold);}
 .owe-row .d.soon{color:var(--text-faint);}
 .owe-as-of{font-size:10.5px;color:var(--text-faint);margin:10px 2px 0;}
+/* The monthly RAW-DOCUMENT checklist, on the Bills screen and scoped to the month the
+   month-nav is already showing (YY 2026-09-06: "a monthly raw checklist (like bill) that
+   make me aware what document is missing"). Deliberately the same shape as a bill row --
+   a tick box on the left, the name, a tag on the right -- because it is the same
+   question: what have I not done for this month. The tick is NOT pressable: a statement
+   is filed by the intake reading the document, never by ticking it here, and a tick that
+   lied would be worse than no tick at all. */
+.rw-head{display:flex;align-items:baseline;justify-content:space-between;padding:16px 20px 4px;}
+.rw-head .t{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;}
+.rw-head .c{font-size:11px;color:var(--text-faint);}
+.rw-list{padding:0 20px 4px;}
+.rw-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
+.rw-tick{flex:0 0 22px;height:22px;border-radius:7px;border:1.5px solid var(--border);
+ display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-faint);background:none;}
+.rw-tick.filed{border-color:rgba(74,193,130,.5);color:var(--income);}
+.rw-tick.overdue{border-color:rgba(232,90,90,.55);}
+.rw-nm{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rw-item.filed .rw-nm{color:var(--text-dim);}
+.rw-tag{font-size:10.5px;white-space:nowrap;}
+.rw-tag.overdue{color:var(--expense);font-weight:600;}
+.rw-tag.missing{color:var(--gold);}
+.rw-tag.provided{color:var(--gold);}
+.rw-tag.not_issued{color:var(--text-faint);}
+.rw-none{font-size:11px;color:var(--text-faint);padding:2px 20px 10px;}
 .tx-row.pending{opacity:.9;}
 .tx-amount.unknown{color:var(--text-faint);font-style:italic;}
 .tx-edit{flex:0 0 auto;color:var(--text-faint);padding:4px;}
@@ -609,7 +633,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-05e';
+var BUILD = '2026-09-06a';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -666,6 +690,39 @@ function oweSheetHTML(){
             + '. The Mac refreshes this once a day.</div>'
           : '<div class="owe-as-of">Never published yet &mdash; the Mac has not run since this was added.</div>')
     + '</div></div>';
+}
+
+// The month's raw-document rows, from the grid the intake publishes in pending.json.
+// A month with no entry is not "complete" -- it is UNKNOWN (the Mac has not published
+// that month, or has not run since the app was updated), and it says so rather than
+// showing an empty, reassuring list.
+var RW_TAG = {filed:'', overdue:'', missing:'not in yet', provided:'with the Mac',
+              not_issued:'bank has not issued'};
+function rawMonthHTML(key){
+  var months = (OWE && OWE.months) || null;
+  if(!months) return '';
+  var rows = months[key];
+  if(!rows) return '<div class="rw-head"><span class="t">Raw documents</span></div>'
+    + '<div class="rw-none">Nothing published for ' + escapeHtml(key)
+    + ' &mdash; outside the window the Mac checks.</div>';
+  // Counted against what is EXPECTED BY NOW, not against every source. The current month
+  // has 18 rows and 0 filed because no bank has printed a statement yet -- and "0 of 18
+  // filed" on a month where nothing is wrong is a red light with nothing behind it.
+  var due = rows.filter(function(r){ return r.state !== 'not_issued'; });
+  var filed = due.filter(function(r){ return r.state === 'filed'; }).length;
+  var open = due.length - filed;
+  var body = rows.map(function(r){
+    var tag = r.state === 'overdue' ? r.days + 'd overdue' : RW_TAG[r.state] || '';
+    return '<div class="rw-item ' + r.state + '">'
+      + '<span class="rw-tick ' + r.state + '">' + (r.state === 'filed' ? '&#10003;' : '') + '</span>'
+      + '<span class="rw-nm">' + escapeHtml(r.source) + '</span>'
+      + '<span class="rw-tag ' + r.state + '">' + escapeHtml(tag) + '</span></div>';
+  }).join('');
+  return '<div class="rw-head"><span class="t">Raw documents</span>'
+    + '<span class="c">' + (due.length ? filed + ' of ' + due.length + ' filed'
+                                       : 'none issued yet') + '</span></div>'
+    + '<div class="rw-list">' + body + '</div>'
+    + (due.length && !open ? '<div class="rw-none">This month is complete.</div>' : '');
 }
 
 function todayStr(){
@@ -1702,6 +1759,7 @@ function billsScreenHTML(){
     +   (n.tenant?'<span class="bm-chip tenant">'+n.tenant+' tenant</span>':'')
     + '</div>'
     + '<div class="bm-list">'+listHTML+'</div>'
+    + rawMonthHTML(bmKey(billMonth))
     + '</div>';
 }
 
