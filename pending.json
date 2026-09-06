@@ -1,71 +1,71 @@
 {
- "generated": "2026-09-05T15:51:06",
+ "generated": "2026-09-06T09:00:22",
  "count": 22,
  "items": [
   {
    "month": "2026-02",
    "source": "HLB Home Loan statement (Ember)",
-   "days": 182,
+   "days": 183,
    "status": "overdue"
   },
   {
    "month": "2026-03",
    "source": "HLB Home Loan statement (Ember)",
-   "days": 151,
+   "days": 152,
    "status": "overdue"
   },
   {
    "month": "2026-04",
    "source": "HLB Home Loan statement (Ember)",
-   "days": 121,
+   "days": 122,
    "status": "overdue"
   },
   {
    "month": "2026-05",
    "source": "HLB Home Loan statement (Ember)",
-   "days": 90,
+   "days": 91,
    "status": "overdue"
   },
   {
    "month": "2026-05",
    "source": "MBB Savings (bank)",
-   "days": 90,
+   "days": 91,
    "status": "overdue"
   },
   {
    "month": "2026-05",
    "source": "Maybank Broker cash (Premier 1 share trading)",
-   "days": 90,
+   "days": 91,
    "status": "overdue"
   },
   {
    "month": "2026-06",
    "source": "HLB Home Loan statement (Ember)",
-   "days": 60,
+   "days": 61,
    "status": "overdue"
   },
   {
    "month": "2026-06",
    "source": "Maybank Broker cash (Premier 1 share trading)",
-   "days": 60,
+   "days": 61,
    "status": "overdue"
   },
   {
    "month": "2026-07",
    "source": "Grab wallet  (one export covers a range)",
-   "days": 29,
+   "days": 30,
    "status": "overdue"
   },
   {
    "month": "2026-07",
    "source": "HLB Home Loan statement (Ember)",
-   "days": 29,
+   "days": 30,
    "status": "overdue"
   },
   {
    "month": "2026-07",
    "source": "Maybank Amex (card)",
-   "days": 29,
+   "days": 30,
    "status": "overdue"
   },
   {
