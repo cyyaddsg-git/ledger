@@ -1,6 +1,6 @@
 {
- "generated": "2026-09-06T13:34:18",
- "count": 16,
+ "generated": "2026-09-06T13:49:35",
+ "count": 11,
  "items": [
   {
    "month": "2026-05",
@@ -40,12 +40,6 @@
   },
   {
    "month": "2026-08",
-   "source": "CIMB MY (bank)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-08",
    "source": "CIMB SG (bank)",
    "days": 0,
    "status": "due now"
@@ -59,30 +53,6 @@
   {
    "month": "2026-08",
    "source": "Grab wallet  (one export covers a range)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-08",
-   "source": "MBB Savings (bank)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-08",
-   "source": "Maybank Amex (card)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-08",
-   "source": "Maybank Broker cash (Premier 1 share trading)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-08",
-   "source": "PBB cards — Visa Signature + Quantum",
    "days": 0,
    "status": "due now"
   },
@@ -195,7 +165,7 @@
    },
    {
     "source": "CIMB MY (bank)",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
@@ -240,22 +210,22 @@
    },
    {
     "source": "MBB Savings (bank)",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
     "source": "Maybank Amex (card)",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
     "source": "Maybank Broker cash (Premier 1 share trading)",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
     "source": "PBB cards — Visa Signature + Quantum",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
