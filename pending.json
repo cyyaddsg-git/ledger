@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-06T09:00:22",
+ "generated": "2026-09-06T12:51:47",
  "count": 22,
  "items": [
   {
@@ -134,5 +134,800 @@
    "days": 0,
    "status": "due now"
   }
- ]
+ ],
+ "months": {
+  "2026-09": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "HLB Wise (card)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "not_issued",
+    "days": 0
+   }
+  ],
+  "2026-08": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB Wise (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "missing",
+    "days": 0
+   }
+  ],
+  "2026-07": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "overdue",
+    "days": 30
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "overdue",
+    "days": 30
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "overdue",
+    "days": 30
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "filed",
+    "days": 0
+   }
+  ],
+  "2026-06": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "overdue",
+    "days": 61
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "overdue",
+    "days": 61
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "filed",
+    "days": 0
+   }
+  ],
+  "2026-05": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "overdue",
+    "days": 91
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "overdue",
+    "days": 91
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "overdue",
+    "days": 91
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "filed",
+    "days": 0
+   }
+  ],
+  "2026-04": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "overdue",
+    "days": 122
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "filed",
+    "days": 0
+   }
+  ],
+  "2026-03": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "overdue",
+    "days": 152
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "filed",
+    "days": 0
+   }
+  ],
+  "2026-02": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "overdue",
+    "days": 183
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "filed",
+    "days": 0
+   }
+  ],
+  "2026-01": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Grab wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB Home Loan statement (Ember)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "filed",
+    "days": 0
+   }
+  ]
+ }
 }
