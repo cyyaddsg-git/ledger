@@ -1,31 +1,7 @@
 {
- "generated": "2026-09-06T12:51:47",
- "count": 22,
+ "generated": "2026-09-06T13:34:18",
+ "count": 16,
  "items": [
-  {
-   "month": "2026-02",
-   "source": "HLB Home Loan statement (Ember)",
-   "days": 183,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-03",
-   "source": "HLB Home Loan statement (Ember)",
-   "days": 152,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-04",
-   "source": "HLB Home Loan statement (Ember)",
-   "days": 122,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-05",
-   "source": "HLB Home Loan statement (Ember)",
-   "days": 91,
-   "status": "overdue"
-  },
   {
    "month": "2026-05",
    "source": "MBB Savings (bank)",
@@ -36,12 +12,6 @@
    "month": "2026-05",
    "source": "Maybank Broker cash (Premier 1 share trading)",
    "days": 91,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-06",
-   "source": "HLB Home Loan statement (Ember)",
-   "days": 61,
    "status": "overdue"
   },
   {
@@ -89,12 +59,6 @@
   {
    "month": "2026-08",
    "source": "Grab wallet  (one export covers a range)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-08",
-   "source": "HLB Home Loan statement (Ember)",
    "days": 0,
    "status": "due now"
   },
@@ -169,11 +133,6 @@
    },
    {
     "source": "Grab wallet  (one export covers a range)",
-    "state": "not_issued",
-    "days": 0
-   },
-   {
-    "source": "HLB Home Loan statement (Ember)",
     "state": "not_issued",
     "days": 0
    },
@@ -261,11 +220,6 @@
    },
    {
     "source": "Grab wallet  (one export covers a range)",
-    "state": "missing",
-    "days": 0
-   },
-   {
-    "source": "HLB Home Loan statement (Ember)",
     "state": "missing",
     "days": 0
    },
@@ -444,11 +398,6 @@
     "days": 0
    },
    {
-    "source": "HLB Home Loan statement (Ember)",
-    "state": "overdue",
-    "days": 61
-   },
-   {
     "source": "HLB Home-loan C/A (bank)",
     "state": "filed",
     "days": 0
@@ -529,11 +478,6 @@
     "source": "Grab wallet  (one export covers a range)",
     "state": "filed",
     "days": 0
-   },
-   {
-    "source": "HLB Home Loan statement (Ember)",
-    "state": "overdue",
-    "days": 91
    },
    {
     "source": "HLB Home-loan C/A (bank)",
@@ -618,11 +562,6 @@
     "days": 0
    },
    {
-    "source": "HLB Home Loan statement (Ember)",
-    "state": "overdue",
-    "days": 122
-   },
-   {
     "source": "HLB Home-loan C/A (bank)",
     "state": "filed",
     "days": 0
@@ -705,11 +644,6 @@
     "days": 0
    },
    {
-    "source": "HLB Home Loan statement (Ember)",
-    "state": "overdue",
-    "days": 152
-   },
-   {
     "source": "HLB Home-loan C/A (bank)",
     "state": "filed",
     "days": 0
@@ -790,11 +724,6 @@
     "source": "Grab wallet  (one export covers a range)",
     "state": "filed",
     "days": 0
-   },
-   {
-    "source": "HLB Home Loan statement (Ember)",
-    "state": "overdue",
-    "days": 183
    },
    {
     "source": "HLB Home-loan C/A (bank)",
