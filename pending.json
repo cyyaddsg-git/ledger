@@ -1,59 +1,59 @@
 {
- "generated": "2026-09-09T02:06:32",
+ "generated": "2026-09-10T09:55:24",
  "count": 9,
  "items": [
   {
    "month": "2026-05",
    "source": "Maybank Broker cash (Premier 1 share trading)",
-   "days": 94,
+   "days": 95,
    "status": "overdue"
   },
   {
    "month": "2026-06",
    "source": "Maybank Broker cash (Premier 1 share trading)",
-   "days": 64,
+   "days": 65,
    "status": "overdue"
   },
   {
    "month": "2026-07",
    "source": "Grab wallet  (one export covers a range)",
-   "days": 33,
+   "days": 34,
    "status": "overdue"
   },
   {
    "month": "2026-07",
    "source": "HLB Home Loan statement (Ember)",
-   "days": 33,
+   "days": 34,
    "status": "overdue"
   },
   {
    "month": "2026-07",
    "source": "Maybank Amex (card)",
-   "days": 33,
+   "days": 34,
    "status": "overdue"
   },
   {
    "month": "2026-08",
    "source": "CIMB SG (bank)",
-   "days": 2,
+   "days": 3,
    "status": "overdue"
   },
   {
    "month": "2026-08",
    "source": "DBS Multiplier (bank)",
-   "days": 2,
+   "days": 3,
    "status": "overdue"
   },
   {
    "month": "2026-08",
    "source": "Grab wallet  (one export covers a range)",
-   "days": 2,
+   "days": 3,
    "status": "overdue"
   },
   {
    "month": "2026-08",
    "source": "RHB Basic C/A (bank)",
-   "days": 2,
+   "days": 3,
    "status": "overdue"
   }
  ],
@@ -159,7 +159,7 @@
    {
     "source": "CIMB SG (bank)",
     "state": "overdue",
-    "days": 2
+    "days": 3
    },
    {
     "source": "Citi PremierMiles (card)",
@@ -174,12 +174,12 @@
    {
     "source": "DBS Multiplier (bank)",
     "state": "overdue",
-    "days": 2
+    "days": 3
    },
    {
     "source": "Grab wallet  (one export covers a range)",
     "state": "overdue",
-    "days": 2
+    "days": 3
    },
    {
     "source": "HLB Home-loan C/A (bank)",
@@ -219,7 +219,7 @@
    {
     "source": "RHB Basic C/A (bank)",
     "state": "overdue",
-    "days": 2
+    "days": 3
    },
    {
     "source": "TNG e-wallet  (one export covers a range)",
@@ -266,12 +266,12 @@
    {
     "source": "Grab wallet  (one export covers a range)",
     "state": "overdue",
-    "days": 33
+    "days": 34
    },
    {
     "source": "HLB Home Loan statement (Ember)",
     "state": "overdue",
-    "days": 33
+    "days": 34
    },
    {
     "source": "HLB Home-loan C/A (bank)",
@@ -291,7 +291,7 @@
    {
     "source": "Maybank Amex (card)",
     "state": "overdue",
-    "days": 33
+    "days": 34
    },
    {
     "source": "Maybank Broker cash (Premier 1 share trading)",
@@ -378,7 +378,7 @@
    {
     "source": "Maybank Broker cash (Premier 1 share trading)",
     "state": "overdue",
-    "days": 64
+    "days": 65
    },
    {
     "source": "PBB cards — Visa Signature + Quantum",
@@ -460,7 +460,7 @@
    {
     "source": "Maybank Broker cash (Premier 1 share trading)",
     "state": "overdue",
-    "days": 94
+    "days": 95
    },
    {
     "source": "PBB cards — Visa Signature + Quantum",
