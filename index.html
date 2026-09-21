@@ -1418,7 +1418,7 @@ function importInputHTML(){
 
 // Expense / Income / History — the same control on both screens (YY, 2026-08-27:
 // "History can be 3rd header button for +Add"). History stops being a bottom tab
-// and becomes a sibling view, the way Card / Paper P/L sit under Market.
+// and becomes a sibling view, the way Card / Sim sit under Market.
 function entrySegmentedHTML(){
   var onHist = state.tab === 'history';
   return '<div class="segmented">' +
@@ -1537,7 +1537,7 @@ function marketScreenHTML(){
   var seg = '<div class="segmented" style="margin:6px 20px 8px">' +
     '<button class="' + (view==='card'?'active':'') + '" onclick="setMarketView(\'card\')">Card</button>' +
     '<button class="' + (view==='intraday'?'active':'') + '" onclick="setMarketView(\'intraday\')">Intraday</button>' +
-    '<button class="' + (view==='sim'?'active':'') + '" onclick="setMarketView(\'sim\')">Paper P/L</button>' +
+    '<button class="' + (view==='sim'?'active':'') + '" onclick="setMarketView(\'sim\')">Sim</button>' +
     '</div>';
   var NOTES = {
     card: 'Advice only &middot; rebuilt 20:45 SGT weekdays. Blank means the card has not run yet, or you are offline.',
