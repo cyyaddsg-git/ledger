@@ -1,13 +1,7 @@
 {
- "generated": "2026-09-26T23:42:33",
- "count": 2,
+ "generated": "2026-09-26T23:58:29",
+ "count": 1,
  "items": [
-  {
-   "month": "2026-08",
-   "source": "CIMB SG (bank)",
-   "days": 19,
-   "status": "overdue"
-  },
   {
    "month": "2026-08",
    "source": "RHB Basic C/A (bank)",
@@ -111,8 +105,8 @@
    },
    {
     "source": "CIMB SG (bank)",
-    "state": "overdue",
-    "days": 19
+    "state": "filed",
+    "days": 0
    },
    {
     "source": "Citi PremierMiles (card)",
