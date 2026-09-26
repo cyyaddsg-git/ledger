@@ -1,6 +1,6 @@
 {
- "generated": "2026-09-26T09:00:03",
- "count": 9,
+ "generated": "2026-09-26T13:32:56",
+ "count": 8,
  "items": [
   {
    "month": "2026-05",
@@ -35,12 +35,6 @@
   {
    "month": "2026-08",
    "source": "CIMB SG (bank)",
-   "days": 19,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-08",
-   "source": "DBS Multiplier (bank)",
    "days": 19,
    "status": "overdue"
   },
@@ -141,7 +135,7 @@
    },
    {
     "source": "UOB Mastercard (card)",
-    "state": "not_issued",
+    "state": "filed",
     "days": 0
    }
   ],
@@ -173,8 +167,8 @@
    },
    {
     "source": "DBS Multiplier (bank)",
-    "state": "overdue",
-    "days": 19
+    "state": "filed",
+    "days": 0
    },
    {
     "source": "Grab wallet  (one export covers a range)",
