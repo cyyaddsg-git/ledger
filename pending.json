@@ -1,14 +1,7 @@
 {
- "generated": "2026-09-27T00:00:40",
- "count": 1,
- "items": [
-  {
-   "month": "2026-08",
-   "source": "RHB Basic C/A (bank)",
-   "days": 20,
-   "status": "overdue"
-  }
- ],
+ "generated": "2026-09-27T10:35:01",
+ "count": 0,
+ "items": [],
  "months": {
   "2026-09": [
    {
@@ -78,7 +71,7 @@
    },
    {
     "source": "RHB Basic C/A (bank)",
-    "state": "not_issued",
+    "state": "filed",
     "days": 0
    },
    {
@@ -160,8 +153,8 @@
    },
    {
     "source": "RHB Basic C/A (bank)",
-    "state": "overdue",
-    "days": 20
+    "state": "filed",
+    "days": 0
    },
    {
     "source": "TNG e-wallet  (one export covers a range)",
