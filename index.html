@@ -673,7 +673,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-06e';
+var BUILD = '2026-09-27a';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -2003,11 +2003,13 @@ function render(){
       state.tab==='raw' ? rawScreenHTML() : historyScreenHTML()) + '</div>' +
     tabbarHTML() +
     '<div id="toast" class="toast"></div>' +
+    // Bill sheet first: the pickers it opens (pay method "More", currency) share its
+    // z-index, so they must come after it in the DOM or they open hidden behind it.
+    (state.billOpen ? billSheetHTML() : '') +
     (state.currencySheetOpen ? currencySheetHTML() : '') +
     (state.pmSheetOpen ? pmSheetHTML() : '') +
     (state.infoSheetOpen ? infoSheetHTML() : '') +
-    (state.taSheetOpen ? taSheetHTML() : '') +
-    (state.billOpen ? billSheetHTML() : '');
+    (state.taSheetOpen ? taSheetHTML() : '');
   updateSaveButtonState();
 }
 
