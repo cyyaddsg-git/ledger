@@ -673,7 +673,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-27a';
+var BUILD = '2026-09-27b';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -1015,14 +1015,18 @@ function updateSaveButtonState(){
     : (state.editing ? 'Update without amount' : 'Save without amount');
 }
 
-function selectCategory(id){ state.category = id; render(); }
+// Tapping the already-selected chip clears it (YY 2026-09-27).
+function selectCategory(id){ state.category = state.category === id ? null : id; render(); }
 // `target` is passed EXPLICITLY by every call site. Relying on state.pmTarget alone was
 // wrong and shipped broken for one build: the inline chips inside a bill's pay block set
 // no target, so tapping one wrote CIMB MY into a half-typed Add screen instead of into
 // the payment. Caught by asserting the Add draft was untouched after a pay.
 function selectPayMethod(id, target){
   var pm = PAY_METHODS_BY_ID[id] || null;
-  if((target || state.pmTarget) === 'pay' && state.pay) state.pay.pm = pm ? pm.id : null;
+  var isPay = (target || state.pmTarget) === 'pay' && state.pay;
+  var cur = isPay ? state.pay.pm : (state.payMethod ? state.payMethod.id : null);
+  if(pm && cur === pm.id) pm = null;          // tapping the selected method clears it (YY 2026-09-27)
+  if(isPay) state.pay.pm = pm ? pm.id : null;
   else state.payMethod = pm;
   state.pmSheetOpen = false;
   render();
