@@ -1,6 +1,6 @@
 {
- "generated": "2026-10-25T09:00:21",
- "count": 13,
+ "generated": "2026-10-25T16:05:44",
+ "count": 12,
  "items": [
   {
    "month": "2026-09",
@@ -53,12 +53,6 @@
   {
    "month": "2026-09",
    "source": "HLB Wise (card)",
-   "days": 18,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-09",
-   "source": "MBB Savings (bank)",
    "days": 18,
    "status": "overdue"
   },
@@ -145,7 +139,7 @@
    },
    {
     "source": "PBB cards — Visa Signature + Quantum",
-    "state": "not_issued",
+    "state": "filed",
     "days": 0
    },
    {
@@ -212,8 +206,8 @@
    },
    {
     "source": "MBB Savings (bank)",
-    "state": "overdue",
-    "days": 18
+    "state": "filed",
+    "days": 0
    },
    {
     "source": "Maybank Amex (card)",
