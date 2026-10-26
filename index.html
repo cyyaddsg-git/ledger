@@ -221,7 +221,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
   color:var(--text-faint);}
 .rw-legend b{font-weight:400;margin-right:3px;}
 .rw-legend b.filed{color:var(--income);}
-.rw-legend b.overdue{color:var(--expense);}
 .rw-legend b.missing{color:var(--gold);}
 .rw-foot{font-size:10.5px;color:var(--text-faint);line-height:1.6;padding:14px 20px 20px;}
 .rw-foot code{font-family:'JetBrains Mono';font-size:10px;}
@@ -239,13 +238,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .rw-tick{flex:0 0 18px;text-align:center;font-size:12px;line-height:1.4;
  color:var(--text-faint);user-select:none;}
 .rw-tick.filed{color:var(--income);font-size:13px;}
-.rw-tick.overdue{color:var(--expense);}
 .rw-tick.missing,.rw-tick.provided{color:var(--gold);}
 .rw-tick.not_issued{color:var(--text-faint);opacity:.55;}
 .rw-nm{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rw-item.filed .rw-nm{color:var(--text-dim);}
 .rw-tag{font-size:10.5px;white-space:nowrap;}
-.rw-tag.overdue{color:var(--expense);font-weight:600;}
 .rw-tag.missing{color:var(--gold);}
 .rw-tag.provided{color:var(--gold);}
 .rw-tag.not_issued{color:var(--text-faint);}
@@ -684,7 +681,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-10-26a';
+var BUILD = '2026-10-26b';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -719,11 +716,17 @@ function oweFetch(){
 // SWIPE, because YY asked for it: horizontal drag changes month. Guarded so it cannot
 // fight the page's vertical scroll -- a gesture only counts as a swipe if it is mostly
 // horizontal and long enough to be deliberate.
-var RW_TAG = {filed:'', overdue:'', missing:'not in yet', provided:'with the Mac',
+var RW_TAG = {filed:'', missing:'not in yet', provided:'with the Mac',
               not_issued:'bank has not issued'};
 // Status glyphs, deliberately NOT checkbox-shaped -- see .rw-tick in the stylesheet.
-var RW_MARK = {filed:'&#10003;', overdue:'&#9679;', missing:'&#9675;',
+var RW_MARK = {filed:'&#10003;', missing:'&#9675;',
                provided:'&#9680;', not_issued:'&ndash;'};
+// The Mac still publishes 'overdue' (not in raw/ by the 7th of the next month, the same
+// cutoff for every bank). It is SHOWN as plain 'missing': no red, no "19d overdue", no
+// overdue count. YY 2026-10-26: "if you cannot do the right thing, don't do it and
+// pressure me" -- one cutoff for every source cannot be right, and the list exists to
+// say what is missing, not to chase.
+function rwState(s){ return s === 'overdue' ? 'missing' : s; }
 var rawMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 var RAW_MONTHS = ['January','February','March','April','May','June','July','August',
                   'September','October','November','December'];
@@ -757,11 +760,11 @@ function rawRowsHTML(key){
   if(!rows) return '<div class="rw-none">Nothing published for ' + escapeHtml(key)
     + ' &mdash; outside the window the Mac checks.</div>';
   return rows.map(function(r){
-    var tag = r.state === 'overdue' ? r.days + 'd overdue' : RW_TAG[r.state] || '';
-    return '<div class="rw-item ' + r.state + '">'
-      + '<span class="rw-tick ' + r.state + '">' + (RW_MARK[r.state] || '') + '</span>'
+    var st = rwState(r.state);
+    return '<div class="rw-item ' + st + '">'
+      + '<span class="rw-tick ' + st + '">' + (RW_MARK[st] || '') + '</span>'
       + '<span class="rw-nm">' + escapeHtml(r.source) + '</span>'
-      + '<span class="rw-tag ' + r.state + '">' + escapeHtml(tag) + '</span></div>';
+      + '<span class="rw-tag ' + st + '">' + escapeHtml(RW_TAG[st] || '') + '</span></div>';
   }).join('');
 }
 
@@ -773,7 +776,6 @@ function rawScreenHTML(){
   // behind it.
   var due = rows.filter(function(r){ return r.state !== 'not_issued'; });
   var filed = due.filter(function(r){ return r.state === 'filed'; }).length;
-  var late = due.filter(function(r){ return r.state === 'overdue'; }).length;
   var open = due.length - filed;
   return '<div class="bills-screen raw-screen" ontouchstart="rwTouchStart(event)" '
     +      'ontouchend="rwTouchEnd(event)">'
@@ -786,8 +788,7 @@ function rawScreenHTML(){
     +     rawMonth.getFullYear() + '</div>'
     +   '<button onclick="shiftRawMonth(1)">&rsaquo;</button></div>'
     + '<div class="bm-chips">'
-    +   (late ? '<span class="bm-chip over">' + late + ' overdue</span>' : '')
-    +   (open - late > 0 ? '<span class="bm-chip due">' + (open - late) + ' not in</span>' : '')
+    +   (open > 0 ? '<span class="bm-chip due">' + open + ' not in</span>' : '')
     +   '<span class="bm-chip paid">' + filed + ' filed</span>'
     +   (due.length < rows.length
         ? '<span class="bm-chip auto">' + (rows.length - due.length) + ' not issued</span>' : '')
@@ -796,7 +797,6 @@ function rawScreenHTML(){
     + (due.length && !open ? '<div class="rw-none">This month is complete.</div>' : '')
     + '<div class="rw-legend">'
     +   '<span><b class="filed">&#10003;</b> filed</span>'
-    +   '<span><b class="overdue">&#9679;</b> overdue</span>'
     +   '<span><b class="missing">&#9675;</b> not in</span>'
     +   '<span><b class="not_issued">&ndash;</b> not issued</span></div>'
     + '<div class="rw-foot"><b>You cannot tick this list, and that is on purpose.</b> '
