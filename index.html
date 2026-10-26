@@ -658,6 +658,17 @@ PAY_METHOD_GROUPS.forEach(function(g){
     PAY_METHODS_BY_ID[it.id] = {id:it.id, label:it.label, emoji:g.icon, group:g.label, placeholder:!!it.placeholder};
   });
 });
+// The currency each pay method spends in. Picking one sets the entry's currency to it,
+// unless a currency was picked by hand for that entry (YY 2026-10-26: "select MY card
+// default currency to MYR unless i change, select SG card default currency to SGD").
+// Kept OUT of PAY_METHODS_BY_ID on purpose: those objects are stored on every
+// transaction and exported, and this is a UI default, not a fact about the entry.
+// GrabPay runs in both countries, so it has none and leaves the currency alone.
+var PAY_METHOD_CUR = {
+  dbs_alt:'SGD', citi_pm:'SGD', dbs_sg:'SGD', cimb_sg:'SGD',
+  pbb_visa:'MYR', uob_mc:'MYR', mbb_amex:'MYR', hlb_wise:'MYR',
+  cimb_my:'MYR', hlb_pay:'MYR', rhb_ca:'MYR', mbb_sav:'MYR', hlb_ember:'MYR', tng:'MYR'
+};
 
 var plusSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 var listSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
@@ -673,7 +684,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-09-27b';
+var BUILD = '2026-10-26a';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -813,7 +824,10 @@ var state = {
   // state.payMethod / state.currency -- those belong to a half-typed Add screen,
   // and paying a bill would silently rewrite it. pmTarget/curTarget say which of
   // the two the shared pay-method and currency sheets are editing.
-  pay:null, pmTarget:'add', curTarget:'add'
+  pay:null, pmTarget:'add', curTarget:'add',
+  // true once a currency is picked by hand for the entry being typed; until then the
+  // pay method sets it (PAY_METHOD_CUR). Reset with the entry.
+  curManual:false
 };
 var pendingDelete = null;
 var undoTimer = null;
@@ -1028,6 +1042,13 @@ function selectPayMethod(id, target){
   if(pm && cur === pm.id) pm = null;          // tapping the selected method clears it (YY 2026-09-27)
   if(isPay) state.pay.pm = pm ? pm.id : null;
   else state.payMethod = pm;
+  // The method brings its own currency -- until one is picked by hand for this entry.
+  // Clearing the method leaves the currency where it is.
+  var home = pm && PAY_METHOD_CUR[pm.id];
+  if(home){
+    if(isPay){ if(!state.pay.curManual) state.pay.cur = home; }
+    else if(!state.curManual) state.currency = home;
+  }
   state.pmSheetOpen = false;
   render();
 }
@@ -1054,8 +1075,9 @@ function closeCurrencySheet(){ state.currencySheetOpen = false; render(); }
 function selectCurrency(code){
   // Only the Add screen's currency is the DEFAULT that persists. A bill settled
   // once in SGD must not change what the next expense defaults to.
-  if(state.curTarget === 'pay' && state.pay){ state.pay.cur = code; }
-  else { state.currency = code; persist(); }
+  // A currency picked here wins over the pay method's for the rest of this entry.
+  if(state.curTarget === 'pay' && state.pay){ state.pay.cur = code; state.pay.curManual = true; }
+  else { state.currency = code; state.curManual = true; persist(); }
   state.currencySheetOpen = false;
   render();
 }
@@ -1128,6 +1150,7 @@ async function saveTransaction(){
 function clearEntry(){
   state.amount = '0'; state.note = ''; state.category = null;
   state.payMethod = null; state.date = todayStr(); state.editing = null;
+  state.curManual = false;
 }
 
 // Load an existing row back into the Add screen. This is how an unknown amount gets
@@ -1135,6 +1158,10 @@ function clearEntry(){
 function editTx(id){
   var t = state.transactions.filter(function(x){ return x.id === id; })[0];
   if(!t) return;
+  // Remember where History was, so Update / Cancel land back on this row instead of
+  // at the top of the list (YY 2026-10-26).
+  var sc = document.querySelector('.screen-container');
+  histReturn = {top: sc ? sc.scrollTop : 0, id: id};
   state.editing = id;
   state.tab = 'add';
   state.type = t.type;
@@ -1144,6 +1171,10 @@ function editTx(id){
   state.payMethod = t.payMethod || null;
   state.note = t.note || '';
   state.date = String(t.date).slice(0,10);
+  // A saved currency that is not its method's own was picked by hand (a foreign spend on
+  // an SG card, say), so changing the method while editing must not overwrite it.
+  var home = t.payMethod && PAY_METHOD_CUR[t.payMethod.id];
+  state.curManual = !!(home && home !== t.currency);
   render();
 }
 function cancelEdit(){ clearEntry(); state.tab = 'history'; render(); }
@@ -1468,7 +1499,7 @@ function addScreenHTML(){
 function txRowHTML(t){
   var sym = CURRENCIES[t.currency] || t.currency;
   var time = new Date(t.date).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-  return '<div class="tx-row' + (t.amountUnknown || t.amount == null ? ' pending' : '') + '">' +
+  return '<div class="tx-row' + (t.amountUnknown || t.amount == null ? ' pending' : '') + '" id="row-' + t.id + '">' +
     '<div class="tx-bubble">' + t.category.emoji + '</div>' +
     '<div class="tx-info"><div class="tx-cat">' + t.category.label +
     (t.payMethod ? ' <span class="tx-pm">' + t.payMethod.emoji + '</span>' : '') + '</div>' +
@@ -1636,14 +1667,17 @@ function toggleBill(id){
 function openBill(id){
   state.billOpen = id;
   var ym = bmKey(billMonth), e = payEntry(ym, id), b = billById(id);
+  // Whatever YY paid this bill with last is overwhelmingly what she will use again.
+  var pm = (e.recs.length ? e.recs[e.recs.length-1].pm : null) || lastPmForBill(id);
   state.pay = {
     id: id, ym: ym,
     amt: '',
-    // Defaulted per bill, so the common case is zero taps. `cur` is on the register
-    // (SGD for the two SG cards and Gomo); everything else is billed in MYR.
-    cur: (b && b.cur) || 'MYR',
-    // Whatever YY paid this bill with last is overwhelmingly what she will use again.
-    pm: (e.recs.length ? e.recs[e.recs.length-1].pm : null) || lastPmForBill(id),
+    // Defaulted per bill, so the common case is zero taps. The pay method's own currency
+    // comes first -- the same rule as Add -- then the register's `cur` (SGD for the two
+    // SG cards and Gomo); everything else is billed in MYR.
+    cur: PAY_METHOD_CUR[pm] || (b && b.cur) || 'MYR',
+    curManual: false,
+    pm: pm,
     // Backdating is the NORMAL case here, not the exception: YY's August rows record
     // payments made in July. Today is only the starting point.
     date: todayStr(),
@@ -1849,7 +1883,7 @@ function billSheetHTML(){
                '</span><span class="ta-to">'+escapeHtml(String(v))+'</span></div>' : '';
   }
   return '<div class="sheet-backdrop" onclick="closeBill()">'
-    + '<div class="sheet" onclick="event.stopPropagation()">'
+    + '<div class="sheet" id="billSheet" data-bill="'+b.id+'" onclick="event.stopPropagation()">'
     +   '<div class="sheet-handle"></div>'
     +   '<div class="sheet-title">'+escapeHtml(b.nm)+'</div>'
     +   (b.info?'<div class="ta-note" style="margin-top:0">'+escapeHtml(b.info)+'</div>':'')
@@ -1994,12 +2028,43 @@ function infoSheetHTML(){
     '</div></div>';
 }
 
+// render() rebuilds the whole page, and a fresh .screen-container starts at scrollTop 0 --
+// so opening a bill, ticking one, picking a pay method in the bill sheet, deleting a row,
+// all threw YY back to the top of the list (YY 2026-10-26: "always jump back to top of
+// page"). A re-render of the SAME screen now keeps its place, and so does the bill sheet;
+// a different screen, or another month, still starts at the top.
+var lastView = null;
+// Where History was when a row's pencil was tapped. Set by editTx, used once on the way back.
+var histReturn = null;
+function viewKey(){
+  return state.tab === 'bills' ? 'bills:' + bmKey(billMonth)
+       : state.tab === 'raw'   ? 'raw:' + bmKey(rawMonth)
+       : state.tab;
+}
+// After an edit the row can move (a new date, or a new time on the same day). If it has
+// left the visible part of the list, centre it -- below the sticky balance cards.
+function keepRowInView(sc, id){
+  var row = document.getElementById('row-' + id);
+  if(!row) return;
+  var bar = sc.querySelector('.balance-row');
+  var c = sc.getBoundingClientRect(), r = row.getBoundingClientRect();
+  var top = c.top + (bar ? bar.offsetHeight : 0);
+  if(r.top < top || r.bottom > c.bottom) sc.scrollTop += (r.top + r.bottom - top - c.bottom) / 2;
+}
+
 function render(){
   var root = document.getElementById('root');
   if(state.loading){
     root.innerHTML = '<div class="loading">Loading…</div>';
     return;
   }
+  var view = viewKey();
+  var oldSc = root.querySelector('.screen-container');
+  var top = oldSc && view === lastView ? oldSc.scrollTop : 0;
+  var oldSheet = document.getElementById('billSheet');
+  var sheetTop = oldSheet && oldSheet.getAttribute('data-bill') === state.billOpen ? oldSheet.scrollTop : 0;
+  var rowId = null;
+  if(view === 'history' && histReturn){ top = histReturn.top; rowId = histReturn.id; histReturn = null; }
   root.innerHTML =
     '<div class="screen-container">' + (state.tab==='add' ? addScreenHTML() :
       state.tab==='bills' ? billsScreenHTML() :
@@ -2014,6 +2079,12 @@ function render(){
     (state.pmSheetOpen ? pmSheetHTML() : '') +
     (state.infoSheetOpen ? infoSheetHTML() : '') +
     (state.taSheetOpen ? taSheetHTML() : '');
+  lastView = view;
+  var sc = root.querySelector('.screen-container');
+  if(sc && top) sc.scrollTop = top;
+  if(sc && rowId) keepRowInView(sc, rowId);
+  var sheet = document.getElementById('billSheet');
+  if(sheet && sheetTop) sheet.scrollTop = sheetTop;
   updateSaveButtonState();
 }
 
