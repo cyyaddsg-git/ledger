@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-01T20:09:52",
- "count": 9,
+ "generated": "2026-11-01T20:26:44",
+ "count": 5,
  "items": [
   {
    "month": "2026-09",
@@ -9,26 +9,8 @@
    "status": "overdue"
   },
   {
-   "month": "2026-09",
-   "source": "CIMB MY (bank)",
-   "days": 25,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-09",
-   "source": "Maybank Amex (card)",
-   "days": 25,
-   "status": "overdue"
-  },
-  {
    "month": "2026-10",
    "source": "AdoreSys payslip",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-10",
-   "source": "CIMB MY (bank)",
    "days": 0,
    "status": "due now"
   },
@@ -41,12 +23,6 @@
   {
    "month": "2026-10",
    "source": "MBB Savings (bank)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-10",
-   "source": "Maybank Amex (card)",
    "days": 0,
    "status": "due now"
   },
@@ -153,7 +129,7 @@
    },
    {
     "source": "CIMB MY (bank)",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
@@ -203,7 +179,7 @@
    },
    {
     "source": "Maybank Amex (card)",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
@@ -240,8 +216,8 @@
    },
    {
     "source": "CIMB MY (bank)",
-    "state": "overdue",
-    "days": 25
+    "state": "filed",
+    "days": 0
    },
    {
     "source": "CIMB SG (bank)",
@@ -285,8 +261,8 @@
    },
    {
     "source": "Maybank Amex (card)",
-    "state": "overdue",
-    "days": 25
+    "state": "filed",
+    "days": 0
    },
    {
     "source": "Maybank Broker cash (Premier 1 share trading)",
