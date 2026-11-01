@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-01T19:54:15",
- "count": 13,
+ "generated": "2026-11-01T20:07:42",
+ "count": 9,
  "items": [
   {
    "month": "2026-09",
@@ -16,19 +16,7 @@
   },
   {
    "month": "2026-09",
-   "source": "CIMB SG (bank)",
-   "days": 25,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-09",
    "source": "Maybank Amex (card)",
-   "days": 25,
-   "status": "overdue"
-  },
-  {
-   "month": "2026-09",
-   "source": "TNG e-wallet  (one export covers a range)",
    "days": 25,
    "status": "overdue"
   },
@@ -65,18 +53,6 @@
   {
    "month": "2026-10",
    "source": "Maybank Broker cash (Premier 1 share trading)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-10",
-   "source": "RHB Basic C/A (bank)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-10",
-   "source": "TNG e-wallet  (one export covers a range)",
    "days": 0,
    "status": "due now"
   }
@@ -242,12 +218,12 @@
    },
    {
     "source": "RHB Basic C/A (bank)",
-    "state": "missing",
+    "state": "provided",
     "days": 0
    },
    {
     "source": "TNG e-wallet  (one export covers a range)",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
@@ -269,8 +245,8 @@
    },
    {
     "source": "CIMB SG (bank)",
-    "state": "overdue",
-    "days": 25
+    "state": "filed",
+    "days": 0
    },
    {
     "source": "Citi PremierMiles (card)",
@@ -329,8 +305,8 @@
    },
    {
     "source": "TNG e-wallet  (one export covers a range)",
-    "state": "overdue",
-    "days": 25
+    "state": "filed",
+    "days": 0
    },
    {
     "source": "UOB Mastercard (card)",
