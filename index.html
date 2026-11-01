@@ -30,6 +30,18 @@
   --text:#F2F0E9;
   --text-dim:#8FA396;
   --text-faint:#5B6A60;
+  /* The two pick areas on the Add screen. Each is the app's own accent laid thinly over
+     --bg, so they are different HUES, not just different greys: Category leans green,
+     Payment leans gold. */
+  --pick-cat:#14261B;
+  --pick-cat-line:rgba(74,222,128,.22);
+  --pick-pay:#26261A;
+  --pick-pay-line:rgba(232,184,75,.26);
+  /* Add-screen row heights. One place, so the short-phone block below only has to change
+     numbers; both areas keep the same height for Expense and for Income. */
+  --cat-h:52px;
+  --pm-h:40px;
+  --key-min:40px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overscroll-behavior:none;}
@@ -88,21 +100,46 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .amount-symbol{font-family:'JetBrains Mono';font-size:18px;color:var(--text-faint);}
 .amount{font-family:'Space Grotesk';font-weight:700;font-size:44px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
 
-/* YY 2026-08-28: was a horizontal scroller, so the chips ran past the right edge of the
-   phone while the segmented control and keypad sat inside it, and half the categories were
-   out of sight. Now a wrapping grid on the SAME 20px margins as the segmented control:
-   all 11 buttons visible, nothing exceeding the screen width, no horizontal scroll. */
-.cat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 6px;padding:2px 20px 8px;}
-.cat-chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0;min-width:0;}
-.cat-bubble{width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;transition:transform .15s,background .15s,border-color .15s;}
-.cat-chip.selected .cat-bubble{background:var(--gold-dim);border-color:var(--gold);transform:scale(1.06);}
-.cat-label{font-size:10px;line-height:1.15;color:var(--text-dim);font-weight:500;text-align:center;max-width:100%;}
-.cat-chip.selected .cat-label{color:var(--gold);}
+/* YY 2026-11-01: "currently every button mix together, i confuse". Category and Payment are
+   two separate questions, each wanting its own 1 answer, so each is a tinted panel with its
+   own label and its own "Pick 1" / "done" state. The state reads without looking at a single
+   chip, and the picked chip is solid gold while the rest of that panel steps back. */
+.pick{margin:5px 16px 0;padding:3px 6px 6px;border-radius:14px;border:1px solid transparent;}
+.pick-cat{background:var(--pick-cat);border-color:var(--pick-cat-line);}
+.pick-pay{background:var(--pick-pay);border-color:var(--pick-pay-line);}
+.pick-head{display:flex;align-items:center;gap:7px;min-height:22px;padding:0 2px 3px;}
+.pick-l{flex:0 0 auto;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.pick-cat .pick-l{color:var(--income);}
+.pick-pay .pick-l{color:var(--gold);}
+.pick-state{min-width:0;font-size:11px;font-weight:600;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pick-state.need{flex:0 0 auto;padding:0 7px;border-radius:999px;border:1px dashed var(--text-dim);color:var(--text-dim);}
+.pick-state.done{color:var(--text);}
+.pick-head .ta-btn{margin-left:auto;flex:0 0 auto;padding:1px 9px;font-size:10.5px;}
 
-.pm-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 8px;}
-.pm-chip{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:var(--surface);border:1.5px solid var(--border);font-size:13px;font-weight:500;color:var(--text-dim);transition:background .15s,border-color .15s,color .15s;}
-.pm-chip.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+/* Exactly 2 rows, always. Expense has 11 buttons (6 + 5). Income has 6, which would be one
+   row at six across, so it goes three across -- the panel keeps the same height and the
+   Payment panel below does not move when YY flips between the two. */
+.cat-row{display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(2,var(--cat-h));gap:4px;}
+.cat-row.three{grid-template-columns:repeat(3,1fr);}
+.cat-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:1px;min-width:0;border-radius:10px;background:var(--surface);border:1.5px solid var(--border);transition:background .15s,border-color .15s,opacity .15s;}
+.cat-row.three .cat-chip{flex-direction:row;gap:6px;}
+.cat-bubble{font-size:17px;line-height:1.15;}
+.cat-label{font-size:10px;line-height:1.1;color:var(--text-dim);font-weight:500;text-align:center;max-width:100%;}
+.cat-row.three .cat-label{font-size:12px;}
+.cat-chip.selected{background:var(--gold);border-color:var(--gold);}
+.cat-chip.selected .cat-label{color:#14200F;font-weight:700;}
+
+/* Two rows of six, in PAY_METHOD_SEQ order, More in the last cell. Row one is the six cards,
+   row two the first banks; the bank name stays on top and the number or place sits under it
+   so a chip never has to shrink its text to fit. */
+.pm-row{display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(2,var(--pm-h));gap:4px;}
+.pm-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 1px;min-width:0;border-radius:10px;background:var(--surface);border:1.5px solid var(--border);font-size:11px;font-weight:600;line-height:1.15;color:var(--text-dim);transition:background .15s,border-color .15s,color .15s,opacity .15s;}
+.pm-tail{font-size:10.5px;font-weight:500;font-variant-numeric:tabular-nums;}
+.pm-chip.selected{background:var(--gold);border-color:var(--gold);color:#14200F;font-weight:700;}
+.pm-chip.selected .pm-tail{font-weight:600;}
 .pm-chip.more{border-style:dashed;}
+.pay-block .pm-chip:not(.selected){background:var(--surface-2);}
+.pick.done .cat-chip:not(.selected),.pick.done .pm-chip:not(.selected):not(.more){opacity:.55;}
 .pm-label{font-size:13px;}
 
 /* pay-method bottom sheet: grouped 3-column grid, mirrors the currency sheet */
@@ -132,16 +169,46 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 /* The keypad is the only part of the entry screen whose height genuinely does not
    matter -- a 40px key works as well as a 54px one. So it, and nothing else, absorbs
    whatever vertical space is left: the screen then fits any phone instead of being
-   tuned to one. minmax(40px,1fr) is the floor, below which the container scrolls. */
-.keypad{padding:4px 16px 4px;display:grid;grid-template-columns:repeat(3,1fr);
-  grid-template-rows:repeat(4,minmax(40px,1fr));gap:6px;flex:1 1 auto;max-height:254px;}
-.key{background:var(--surface);border-radius:14px;height:auto;min-height:0;font-family:'Space Grotesk';font-size:21px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s;}
+   tuned to one. --key-min is the floor, below which the container scrolls. The flex-grow
+   is 1000 so the keypad takes all the spare height up to its cap, and .spacer gets only
+   what is left after that. */
+.keypad{padding:4px 16px 2px;display:grid;grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(4,minmax(var(--key-min),1fr));gap:6px;flex:1000 1 auto;max-height:254px;}
+.key{background:var(--surface);border-radius:14px;height:auto;min-height:0;padding:0;font-family:'Space Grotesk';font-size:21px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s;}
 .key:active{background:var(--surface-2);transform:scale(0.95);}
 .key svg{width:20px;height:20px;stroke:var(--text-dim);}
 
 .save-btn{margin:4px 20px 6px;background:var(--gold);color:#14200F;border-radius:16px;height:46px;font-family:'Space Grotesk';font-weight:700;font-size:16px;transition:transform .1s;}
 .save-btn:disabled{background:var(--surface-2);color:var(--text-faint);}
 .save-btn:active:not(:disabled){transform:scale(0.98);}
+
+/* Note and Save share one row under the two pick areas. The button has a fixed share of the
+   row because its text changes as the amount is typed ("Save without amount" -> "Save
+   Expense"), and a width that followed the text would make the note field jump. */
+.add-foot{display:flex;align-items:center;gap:8px;padding:2px 16px 4px;}
+.add-foot .note-input{flex:1 1 0;min-width:0;padding:5px 2px;}
+.add-save{padding:2px 16px 0;}
+.add-save .save-btn{display:block;width:100%;margin:0;height:44px;padding:0 6px;font-size:15px;}
+
+/* The Editing bar is the one extra row this screen can have. The keys give up the height
+   for it, because they matter least while correcting an entry. */
+.add-screen.editing{--key-min:31px;}
+
+/* Short phones: 375x667, 414x736 and their kin. No iPhone sits between 736 and 812, so the
+   line is drawn in that gap. At these heights the whole screen fits with no scrolling. */
+@media (max-height:799px){
+  :root{--cat-h:40px;--pm-h:31px;--key-min:30px;}
+  .add-screen.editing{--key-min:27px;}
+  .add-screen.editing .amount{font-size:30px;}
+  .add-screen.editing .pick{margin-top:2px;}
+  .editing-bar{margin:3px 20px 0;padding:3px 12px;}
+  .amount-wrap{padding:2px 20px 0;}
+  .amount{font-size:36px;}
+  .cat-bubble{font-size:15px;}
+  .pick{margin-top:4px;}
+  .add-foot{padding:1px 16px 2px;}
+  .add-save .save-btn{height:38px;}
+}
 
 /* The home-indicator inset is 34px on YY's phone, which read as two blank lines under
    the labels. Halved, with a floor so a device without an inset still has breathing room. */
@@ -199,8 +266,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .sheet-sym{font-family:'JetBrains Mono';font-weight:600;font-size:15px;}
 .sheet-code{font-size:10px;color:var(--text-dim);}
 
-.cat-head{display:flex;align-items:center;justify-content:space-between;padding:0 20px 2px;}
-.cat-head-l{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;}
 .ta-row{display:flex;align-items:baseline;gap:8px;padding:6px 2px;border-bottom:1px solid var(--border);font-size:13px;}
 .ta-from{flex:0 0 46%;}
 .ta-arrow{color:var(--text-dim);opacity:.5;}
@@ -323,6 +388,27 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .bm-tag.over{background:rgba(255,107,107,.16);color:var(--expense);}
 .bm-tag.due{background:var(--gold-dim);color:var(--gold);}
 .loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);}
+
+/* Cards vault */
+.vault{padding:0 20px 24px;display:flex;flex-direction:column;gap:12px;}
+.vault-lock{display:flex;flex-direction:column;gap:12px;padding-top:28px;}
+.vault-lock p{color:var(--text-dim);font-size:13px;line-height:1.45;}
+.vault-input{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:16px;padding:12px;}
+.vault-label{color:var(--text-dim);font-size:12px;font-weight:600;margin-bottom:-6px;}
+.vault-btn{background:var(--gold);color:#17120A;font-weight:700;font-size:15px;padding:13px;border-radius:10px;}
+.vault-btn.ghost{background:none;color:var(--text-dim);font-weight:600;font-size:13px;padding:8px;}
+.vault-btn.danger{background:none;border:1px solid var(--expense);color:var(--expense);font-size:14px;}
+.vault-err{color:var(--expense);font-size:13px;min-height:18px;}
+.card-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.card-name{font-family:'Space Grotesk';font-weight:700;font-size:15px;}
+.card-edit{color:var(--text-dim);font-size:12px;font-weight:600;padding:4px 8px;}
+.card-copy{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;}
+.card-copy button{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:9px 6px;text-align:center;}
+.card-copy button:active{background:var(--gold-dim);}
+.card-copy small{display:block;color:var(--text-faint);font-size:10px;font-weight:600;margin-bottom:2px;}
+.card-copy span{color:var(--text);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;}
+.card-empty{width:100%;color:var(--gold);font-size:13px;font-weight:600;padding:8px;text-align:center;}
 </style>
 </head>
 <body>
@@ -389,12 +475,12 @@ function bmSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e)
 // RMxx and payment method, which also cross the bill of the month").
 // bm_pay_<YYYY-MM>[billId] = {recs:[{d,amt,cur,pm,n,txId}], hand:'<note YY typed>'}
 //   recs   one record per tap. An ARRAY because YY's own sheet already splits a bill:
-//          "7/18 rm10000 cimb, 7/21 rm2610.05".
+//          "date, amount, bank; date, amount".
 //   hand   whatever free text was in bm_note_ before the first payment was recorded,
 //          kept verbatim so nothing YY typed is ever destroyed.
 // bm_note_ stays THE interop field -- Export/Import, the standalone Bill Manager and
 // bm_crosscheck.py all read it -- and is REGENERATED from recs + hand in YY's own
-// dialect (7/18 rm10000 cimb my). Nothing here is parsed OUT of an existing note: a
+// dialect (date, amount, bank). Nothing here is parsed OUT of an existing note: a
 // recomposition that mangles YY's own words would be worse than having no total.
 function bmPayLoad(ym){ return bmLoad('bm_pay_'+ym); }
 function bmPaySave(ym,v){ bmSave('bm_pay_'+ym,v); }
@@ -410,7 +496,7 @@ function trimAmt(a){
 function payLine(r){
   var d = String(r.d).split('-');
   var out = Number(d[1])+'/'+Number(d[2]);
-  var pm = r.pm && PAY_METHODS_BY_ID[r.pm] ? PAY_METHODS_BY_ID[r.pm].label.toLowerCase() : '';
+  var pm = r.pm && PAY_METHODS_BY_ID[r.pm] ? pmName(PAY_METHODS_BY_ID[r.pm]).toLowerCase() : '';
   if(pm) out += ' ' + pm;
   if(r.amt != null) out += ' ' + (r.cur==='MYR' ? 'rm' : String(r.cur).toLowerCase()) + trimAmt(r.amt);
   if(r.n) out += ' ' + r.n;
@@ -446,14 +532,11 @@ function payTotalText(e){
 // (snapshot 18 Jul 2026). Seeded ONCE and never over an existing value, so unticking
 // something here stays unticked.
 var BM_SEED = {
- '2026-05':{paid:{cc_uob:1}, note:{cc_uob:'6/3 cimb rm14796.72'}},
- '2026-06':{paid:{}, note:{cc_pbbv:'6/9 cimb rm8964.15', cc_pbbq:'6/9 cimb rm220', cc_uob:'6/30 cimb rm5493.64'}},
+ '2026-05':{paid:{cc_uob:1}, note:{}},
+ '2026-06':{paid:{}, note:{}},
  '2026-07':{paid:{ski_tnb:1,cc_pbbv:1,cc_pbbq:1,cc_dbs:1,em_tnb:1,ski_wat:1,em_iwk:1,hg_maint:1,em_maint:1,cc_citi:1,cc_uob:1,em_wat:1},
-            note:{ski_tnb:'7/5 cimb part of rm438.24', cc_pbbv:'6/23 cimb rm5366.08', cc_pbbq:'6/23 cimb rm220',
-                  cc_dbs:'7/14 dbs sgd632', em_tnb:'7/5 cimb part of rm438.24', ski_wat:'7/5 cimb rm16.90',
-                  em_iwk:'7/18 cimb rm45', hg_maint:'6/30 CSS rm319', em_maint:'7/5 dbs rm438.24',
-                  cc_citi:'7/9 dbs sgd131.07', cc_uob:'7/18 cimb rm2280.05', hg_elec:'6/12', em_wat:'7/5 AS rm16.90'}},
- '2026-08':{paid:{cc_pbbv:1, hg_iwk:1}, note:{cc_pbbv:'7/18 rm10000 cimb'}}
+            note:{}},
+ '2026-08':{paid:{cc_pbbv:1, hg_iwk:1}, note:{}}
 };
 (function seedBills(){
   try{
@@ -480,14 +563,10 @@ var BM_SEED2 = {
  '2026-08':{
    paid:{ski_tnb:1,cc_pbbv:1,cc_pbbq:1,cc_dbs:1,em_tnb:1,ski_wat:1,hg_maint:1,em_maint:1,
          cc_citi:1,cc_uob:1,em_wat:1,hg_iwk:1},
-   note:{ski_tnb:'8/9 amex 180.9', cc_pbbv:'7/18 rm10000 cimb, 7/21 rm2610.05',
-         cc_pbbq:'7/21 rm220', cc_dbs:'8/9 check outstanding 0', em_tnb:'8/9 amex 205.7',
-         ski_wat:'8/28 pbb visa rm8.45 (of rm21.45 trans)', hg_maint:'8/9 cimb rm638',
-         em_maint:'7/26 rm438.24 cimb', cc_citi:'8/11 checked no outstanding',
-         cc_uob:'8/10 cimb 2979.01', em_wat:'pbb visa rm13 (of rm21.45 trans)'}}
+   note:{}}
 };
 // NOT seeded, deliberately: the sheet's Sep tab has The Henge Maintenance ticked carrying
-// August's own note ('8/9 cimb rm638'), which is a carried row, not a second payment.
+// August's own note (a dated amount), which is a carried row, not a second payment.
 // Guessing it paid would tick a September bill YY may still owe.
 (function seedBills2(){
   try{
@@ -623,23 +702,32 @@ var TA_MAP = {
 // Grouped by real instrument (replaced the old generic Cash/Card/Bank/E-wallet
 // buckets). `placeholder:true` = account confirmed but details (last 4, etc.)
 // not supplied yet — still selectable, just visually muted.
+//
+// The order below IS the order everywhere (YY 2026-11-01): cards DBS, Citi, MBB Amex,
+// PBB Visa, UOB, HLB; banks DBS SG, CIMB SG, MBB Sav, CIMB MY, HLB Pay, HLB Ember, RHB Henge;
+// e-wallets after them. What YY READS is PAY_METHOD_NAME below, not `label`.
+//
+// `label` IS A JOIN KEY, NOT A NAME. DO NOT RENAME IT. It is stored on every transaction,
+// exported, and dev/TA/scripts/ta_ledger.py PAY_METHOD_TO_ACCOUNT looks it up by exact
+// string to find the bank row. A renamed label does not error there: the entry just stops
+// matching, and TA quietly falls back to Unidentified.
 var PAY_METHOD_GROUPS = [
   {label:'Credit Card', icon:'💳', items:[
     {id:'dbs_alt',  label:'DBS Alt'},
     {id:'citi_pm',  label:'Citi PM'},
+    {id:'mbb_amex', label:'MBB Amex'},
     {id:'pbb_visa', label:'PBB Visa'},
     {id:'uob_mc',   label:'UOB MC'},
-    {id:'mbb_amex', label:'MBB Amex'},
-    {id:'hlb_wise', label:'HLB Wise', placeholder:true},
+    {id:'hlb_wise', label:'HLB Wise'},
   ]},
   {label:'Bank', icon:'🏦', items:[
-    {id:'cimb_my',   label:'CIMB MY'},
-    {id:'hlb_pay',   label:'HLB Pay'},
-    {id:'rhb_ca',    label:'RHB C/A'},
-    {id:'mbb_sav',   label:'MBB Sav'},
-    {id:'hlb_ember', label:'HLB Ember'},
     {id:'dbs_sg',    label:'DBS SG'},
     {id:'cimb_sg',   label:'CIMB SG'},
+    {id:'mbb_sav',   label:'MBB Sav'},
+    {id:'cimb_my',   label:'CIMB MY'},
+    {id:'hlb_pay',   label:'HLB Pay'},
+    {id:'hlb_ember', label:'HLB Ember'},
+    {id:'rhb_ca',    label:'RHB C/A'},
   ]},
   {label:'E-wallet', icon:'📱', items:[
     {id:'tng',     label:'TnG'},
@@ -655,6 +743,22 @@ PAY_METHOD_GROUPS.forEach(function(g){
     PAY_METHODS_BY_ID[it.id] = {id:it.id, label:it.label, emoji:g.icon, group:g.label, placeholder:!!it.placeholder};
   });
 });
+// The one sequence every pay-method list on screen follows.
+var PAY_METHOD_SEQ = [];
+PAY_METHOD_GROUPS.forEach(function(g){
+  g.items.forEach(function(it){ PAY_METHOD_SEQ.push(PAY_METHODS_BY_ID[it.id]); });
+});
+// What YY reads. Keyed by id and kept OUT of PAY_METHODS_BY_ID for the same reason as
+// PAY_METHOD_CUR below: those objects are stored on every transaction, and a display name
+// is not a fact about the entry. Old entries pick up a new name by id, with nothing
+// rewritten. A method with no row here shows its label. This is a public repo: the last 4
+// digits only, ever.
+var PAY_METHOD_NAME = {
+  dbs_alt:'DBS 2409', citi_pm:'Citi 2864', mbb_amex:'MBB 4079',
+  pbb_visa:'PBB 8101', uob_mc:'UOB 3988', hlb_wise:'HLB 4409',
+  rhb_ca:'RHB Henge'
+};
+function pmName(p){ return (p && (PAY_METHOD_NAME[p.id] || p.label)) || ''; }
 // The currency each pay method spends in. Picking one sets the entry's currency to it,
 // unless a currency was picked by hand for that entry (YY 2026-10-26: "select MY card
 // default currency to MYR unless i change, select SG card default currency to SGD").
@@ -670,6 +774,7 @@ var PAY_METHOD_CUR = {
 var plusSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 var listSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
 var billSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 3v18l2-1.5L8 21l2-1.5L12 21l2-1.5L16 21l2-1.5L20 21V3z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+var cardSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>';
 var chartSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>';
 var backspaceSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>';
 var pencilSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
@@ -681,7 +786,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-10-26b';
+var BUILD = '2026-11-01s';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -972,7 +1077,7 @@ function showToast(msg){
   toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2000);
 }
 
-function switchTab(tab){ state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; state.taSheetOpen = false; state.billOpen = null; render(); }
+function switchTab(tab){ if(tab !== 'cards') vaultLock(); state.tab = tab; state.currencySheetOpen = false; state.pmSheetOpen = false; state.infoSheetOpen = false; state.taSheetOpen = false; state.billOpen = null; render(); }
 
 function setType(type){
   if(state.tab === 'history'){        // coming back from History
@@ -1058,18 +1163,6 @@ function closePmSheet(){ state.pmSheetOpen = false; render(); }
 function openInfoSheet(){ state.infoSheetOpen = true; render(); }
 function closeInfoSheet(){ state.infoSheetOpen = false; render(); }
 
-// Most-recently-used distinct pay methods, newest first (transactions are
-// stored newest-first already). Caps at 3 so the inline row stays compact;
-// anything else is one tap away via the "More" chip / full sheet.
-function mruPayMethods(){
-  var seen = {}, out = [];
-  for(var i=0;i<state.transactions.length && out.length<3;i++){
-    var pm = state.transactions[i].payMethod;
-    if(pm && !seen[pm.id]){ seen[pm.id]=true; out.push(pm); }
-  }
-  return out;
-}
-
 function openCurrencySheet(target){ state.curTarget = target || 'add'; state.currencySheetOpen = true; render(); }
 function closeCurrencySheet(){ state.currencySheetOpen = false; render(); }
 function selectCurrency(code){
@@ -1092,9 +1185,8 @@ function combinedDateISO(){
   return d.toISOString();
 }
 
-// Transactions must stay sorted newest-first: mruPayMethods() and the
-// History grouping both assume it, and backdating breaks plain unshift/push
-// ordering.
+// Transactions must stay sorted newest-first: the History grouping assumes it,
+// and backdating breaks plain unshift/push ordering.
 function sortTransactions(){
   state.transactions.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
 }
@@ -1110,6 +1202,12 @@ async function saveTransaction(){
   if(unknown && !state.payMethod) return;   // a jot is only useful with a pay channel
   var catList = state.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
   var cat = catList.find(function(c){ return c.id === state.category; });
+  // A bill payment's category is the synthetic bill_<id>, in neither list. Without this
+  // an edit saved undefined, and txRowHTML then threw on it and History went blank.
+  if(!cat && state.editing){
+    var was = state.transactions.filter(function(x){ return x.id === state.editing; })[0];
+    if(was && was.category && was.category.id === state.category) cat = was.category;
+  }
 
   if(state.editing){
     var ex = state.transactions.filter(function(t){ return t.id === state.editing; })[0];
@@ -1266,7 +1364,7 @@ async function exportMonth(){
       ? sym + ' ? (amount not known — jotted for TA to match)'
       : (t.type==='expense'?'-':'+') + sym + t.amount.toFixed(2);
     return '| ' + dateStr + ' | ' + timeStr + ' | ' + (t.type==='expense'?'Expense':'Income') + ' | ' +
-      t.category.label + ' | ' + (t.payMethod ? t.payMethod.label : '') + ' | ' + amt + ' | ' +
+      t.category.label + ' | ' + pmName(t.payMethod) + ' | ' + amt + ' | ' +
       (t.note ? t.note.replace(/\|/g,'/') : '') + ' |';
   }).join('\n');
 
@@ -1381,7 +1479,7 @@ async function exportMonth(){
 
 function categoryRowHTML(){
   var cats = state.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
-  return '<div class="cat-row">' + cats.map(function(c){
+  return '<div class="cat-row' + (cats.length <= 6 ? ' three' : '') + '">' + cats.map(function(c){
     // The TA name is NOT repeated under every chip any more (YY 2026-08-28: it cost a
     // whole line on each of the two grid rows). It is on the chip as a tooltip/aria
     // label, and the "= TA category" button above opens the full table.
@@ -1395,22 +1493,29 @@ function categoryRowHTML(){
   }).join('') + '</div>';
 }
 
-// Inline row = the 3 most-recently-used methods (chosen 2026-08-20, Option A)
-// plus the current selection if it isn't already one of those, plus a "More"
-// chip that opens the full grouped sheet for the other 12+.
+// Inline row = two rows of six: the first 11 methods in PAY_METHOD_SEQ, then "More".
+// It replaced the three most-recently-used chips, so a chip never moves between visits and
+// the sequence matches the More sheet. A selection from further down the sequence takes the
+// last slot: it stays on screen, in order, and can still be cleared by tapping it. A method
+// that no longer exists (an old entry's 'E-wallet') is shown by its stored label the same way.
+var PM_INLINE = 11;
+function payChipHTML(p, sel, target){
+  var parts = pmName(p).split(' ');
+  return '<button class="pm-chip' + (sel ? ' selected' : '') + '" aria-label="' + escapeHtml(pmName(p)) +
+    '" onclick="selectPayMethod(\'' + p.id + '\',\'' + target + '\')">' +
+    '<span>' + escapeHtml(parts[0]) + '</span>' +
+    (parts.length > 1 ? '<span class="pm-tail">' + escapeHtml(parts.slice(1).join(' ')) + '</span>' : '') +
+    '</button>';
+}
 function payMethodRowHTML(target){
   target = target || 'add';
-  var mru = mruPayMethods();
   var cur = target==='pay'
     ? (state.pay && state.pay.pm ? PAY_METHODS_BY_ID[state.pay.pm] : null)
     : state.payMethod;
-  if(cur && !mru.some(function(p){ return p.id === cur.id; })) mru = [cur].concat(mru);
-  var chips = mru.map(function(p){
-    var sel = cur && cur.id === p.id ? ' selected' : '';
-    return '<button class="pm-chip' + sel + '" onclick="selectPayMethod(\'' + p.id + '\',\'' + target + '\')">' +
-      '<span>' + p.emoji + '</span><span class="pm-label">' + p.label + '</span></button>';
-  }).join('');
-  chips += '<button class="pm-chip more" onclick="openPmSheet(\'' + target + '\')"><span>&#8943;</span><span class="pm-label">More</span></button>';
+  var list = PAY_METHOD_SEQ.slice(0, PM_INLINE);
+  if(cur && !list.some(function(p){ return p.id === cur.id; })) list[PM_INLINE-1] = cur;
+  var chips = list.map(function(p){ return payChipHTML(p, cur && cur.id === p.id, target); }).join('');
+  chips += '<button class="pm-chip more" onclick="openPmSheet(\'' + target + '\')"><span>&#8943;</span><span class="pm-tail">More</span></button>';
   return '<div class="pm-row">' + chips + '</div>';
 }
 
@@ -1423,7 +1528,7 @@ function pmSheetHTML(){
         var sel = curPm === it.id ? ' selected' : '';
         var ph = it.placeholder ? ' placeholder' : '';
         return '<button class="pm-item' + sel + ph + '" onclick="selectPayMethod(\'' + it.id + '\',\'' + state.pmTarget + '\')">' +
-          '<span class="pm-icon">' + g.icon + '</span><span class="pm-label">' + escapeHtml(it.label) + '</span></button>';
+          '<span class="pm-icon">' + g.icon + '</span><span class="pm-label">' + escapeHtml(pmName(it)) + '</span></button>';
       }).join('') + '</div>';
   }).join('');
   return '<div class="sheet-backdrop" onclick="closePmSheet()">' +
@@ -1466,9 +1571,19 @@ function entrySegmentedHTML(){
   '</div>';
 }
 
+// The header of one pick area: its name, then whether it still needs its 1 pick.
+function pickHeadHTML(title, picked, extra){
+  return '<div class="pick-head"><span class="pick-l">' + title + '</span>' +
+    (picked ? '<span class="pick-state done">&#10003; ' + escapeHtml(picked) + '</span>'
+            : '<span class="pick-state need">Pick 1</span>') +
+    (extra || '') + '</div>';
+}
+
 function addScreenHTML(){
   var typeLabel = state.type === 'expense' ? 'Expense' : 'Income';
-  return '<div class="add-screen">' +
+  var catPicked = (state.type === 'expense' ? EXPENSE_CATS : INCOME_CATS)
+    .filter(function(c){ return c.id === state.category; })[0];
+  return '<div class="add-screen' + (state.editing ? ' editing' : '') + '">' +
     importInputHTML() +
     '<div class="app-header"><button class="brand brand-btn" onclick="switchTab(\'raw\')">Ledger</button>' +
     '<div class="header-actions">' +
@@ -1485,14 +1600,21 @@ function addScreenHTML(){
       '<span class="amount-symbol">' + CURRENCIES[state.currency] + '</span>' +
       '<span class="amount" id="amountVal">' + state.amount + '</span>' +
     '</div></div>' +
-    '<div class="cat-head"><span class="cat-head-l">Category</span>' +
-      '<button class="ta-btn" onclick="openTaSheet()">= TA category</button></div>' +
-    categoryRowHTML() +
-    payMethodRowHTML() +
-    '<div class="note-wrap"><input class="note-input" placeholder="Add a note (optional)" value="' + escapeHtml(state.note) + '" oninput="state.note=this.value" /></div>' +
-    '<div class="spacer"></div>' +
     keypadHTML() +
-    '<button class="save-btn" id="saveBtn" onclick="saveTransaction()">Save ' + typeLabel + '</button>' +
+    '<div class="add-save"><button class="save-btn" id="saveBtn" onclick="saveTransaction()">Save ' + typeLabel + '</button></div>' +
+    '<div class="spacer"></div>' +
+    '<div class="pick pick-cat' + (catPicked ? ' done' : '') + '">' +
+      pickHeadHTML('Category', catPicked ? catPicked.label : '',
+        '<button class="ta-btn" onclick="openTaSheet()">= TA category</button>') +
+      categoryRowHTML() +
+    '</div>' +
+    '<div class="pick pick-pay' + (state.payMethod ? ' done' : '') + '">' +
+      pickHeadHTML('Payment', pmName(state.payMethod)) +
+      payMethodRowHTML() +
+    '</div>' +
+    '<div class="add-foot">' +
+      '<input class="note-input" placeholder="Note (optional)" value="' + escapeHtml(state.note) + '" oninput="state.note=this.value" />' +
+    '</div>' +
   '</div>';
 }
 
@@ -1592,11 +1714,174 @@ function marketScreenHTML(){
   '</div>';
 }
 
+// ---- Cards (YY 2026-11-01: copy number, expiry and CVV from the phone, instead of an Excel).
+// Encrypted here, on this phone, and nowhere else. The repo is PUBLIC, so nothing about a
+// card but its label may ever be in this file. cards_v1 holds only {salt, iv, ct}: AES-GCM
+// under a key derived from YY's passcode, which is never stored. Export and Import do not
+// touch this key, on purpose: a backup file is exactly what must not carry these.
+// Decrypted cards live in `vault.cards` only while the tab is open. Leaving the tab,
+// leaving the app or a minute of no taps wipes them.
+var CARD_KEY = 'cards_v1', CARD_ITER = 600000, CARD_IDLE_MS = 60000, CARD_MIN_PASS = 8;
+var CARD_SLOTS = ['dbs_alt','citi_pm','mbb_amex','pbb_visa','uob_mc','hlb_wise'];
+var vault = {key:null, cards:null, salt:null, edit:null, forgot:false, busy:false, err:'', timer:null};
+
+function b64(buf){ return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))); }
+function unb64(t){ return Uint8Array.from(atob(t), function(c){ return c.charCodeAt(0); }); }
+function vaultStored(){ try{ return JSON.parse(localStorage.getItem(CARD_KEY)||'null'); }catch(e){ return null; } }
+function vaultDerive(pass, salt, iter){
+  return crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey'])
+    .then(function(base){
+      return crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt:salt, iterations:iter},
+        base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+    });
+}
+function vaultWrite(){
+  var iv = crypto.getRandomValues(new Uint8Array(12));
+  return crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, vault.key,
+      new TextEncoder().encode(JSON.stringify(vault.cards)))
+    .then(function(ct){
+      localStorage.setItem(CARD_KEY, JSON.stringify({v:1, iter:CARD_ITER,
+        salt:b64(vault.salt), iv:b64(iv), ct:b64(ct)}));
+    });
+}
+function vaultTouch(){
+  clearTimeout(vault.timer);
+  if(vault.key) vault.timer = setTimeout(vaultLock, CARD_IDLE_MS);
+}
+function vaultLock(){
+  clearTimeout(vault.timer);
+  var was = !!vault.key;
+  vault.key = null; vault.cards = null; vault.edit = null; vault.err = '';
+  if(was && state.tab === 'cards') render();
+}
+document.addEventListener('visibilitychange', function(){ if(document.hidden) vaultLock(); });
+
+function vaultBusy(p){
+  vault.busy = true; vault.err = ''; render();
+  return p.catch(function(e){ vault.err = e && e.vaultMsg || 'Could not do that on this device.'; })
+    .then(function(){ vault.busy = false; vaultTouch(); render(); });
+}
+// Not render(): that would rebuild the form and wipe what YY just typed.
+function vaultSay(msg){ document.querySelector('.vault-err').textContent = msg; }
+function vaultFail(msg){ var e = new Error(msg); e.vaultMsg = msg; return e; }
+function vaultCreate(){
+  var a = document.getElementById('vaultPass').value;
+  if(a.length < CARD_MIN_PASS) return vaultSay('Use at least ' + CARD_MIN_PASS + ' characters.');
+  vault.salt = crypto.getRandomValues(new Uint8Array(16));
+  vaultBusy(vaultDerive(a, vault.salt, CARD_ITER).then(function(k){
+    vault.key = k; vault.cards = {}; return vaultWrite();
+  }));
+}
+function vaultUnlock(){
+  var pass = document.getElementById('vaultPass').value, doc = vaultStored();
+  vault.salt = unb64(doc.salt);
+  vaultBusy(vaultDerive(pass, vault.salt, doc.iter).then(function(k){
+    return crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(doc.iv)}, k, unb64(doc.ct)).then(function(pt){
+      vault.key = k; vault.cards = JSON.parse(new TextDecoder().decode(pt));
+    });
+  }).catch(function(e){ if(e.name === 'OperationError') throw vaultFail('Wrong passcode.'); throw e; }));
+}
+function vaultForgot(on){ vault.forgot = on; vault.err = ''; render(); }
+function vaultErase(){ localStorage.removeItem(CARD_KEY); vault.forgot = false; vault.err = ''; render(); }
+
+function cardCopy(id, field){
+  vaultTouch();
+  var c = vault.cards && vault.cards[id];
+  if(!c) return;
+  var labels = {number:'Number', exp:'Expiry', cvv:'CVV'};
+  navigator.clipboard.writeText(c[field]).then(function(){
+    showToast(labels[field] + ' copied');
+  }, function(){ showToast('Could not copy'); });
+}
+function cardEdit(id){ vault.edit = id; vault.err = ''; vaultTouch(); render(); }
+// Every real card number passes this, so a failure is a typing mistake.
+function luhnOk(n){
+  var sum = 0, alt = false;
+  for(var i = n.length - 1; i >= 0; i--){
+    var d = +n[i];
+    if(alt){ d *= 2; if(d > 9) d -= 9; }
+    sum += d; alt = !alt;
+  }
+  return sum % 10 === 0;
+}
+function cardSave(){
+  var num = document.getElementById('cardNum').value.replace(/\D/g,'');
+  var exp = document.getElementById('cardExp').value.trim().replace(/^(\d{2})\/?(\d{2})$/,'$1/$2');
+  var cvv = document.getElementById('cardCvv').value.trim();
+  if(num.length < 13 || num.length > 19 || !luhnOk(num))return vaultSay('Card number is not valid. Check the digits.');
+  if(!/^(0[1-9]|1[0-2])\/\d{2}$/.test(exp))return vaultSay('Expiry must be MM/YY.');
+  if(!/^\d{3,4}$/.test(cvv))return vaultSay('CVV must be 3 or 4 digits.');
+  vault.cards[vault.edit] = {number:num, exp:exp, cvv:cvv};
+  vault.edit = null;
+  vaultBusy(vaultWrite());
+}
+function cardClear(){
+  delete vault.cards[vault.edit];
+  vault.edit = null;
+  vaultBusy(vaultWrite());
+}
+
+function cardsHeaderHTML(){
+  return '<div class="app-header"><button class="brand brand-btn" onclick="switchTab(\'raw\')">Ledger</button>' +
+    (vault.key ? '<button class="export-btn" onclick="vaultLock()">Lock</button>' : '') + '</div>';
+}
+function cardsScreenHTML(){
+  var err = '<div class="vault-err">' + escapeHtml(vault.err) + '</div>';
+  var off = ' autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"';
+  if(!window.crypto || !crypto.subtle){
+    return cardsHeaderHTML() + '<div class="vault"><div class="vault-lock"><p>This device cannot encrypt here, so Cards is off.</p></div></div>';
+  }
+  if(vault.key && vault.edit){
+    var cur = vault.cards[vault.edit] || {number:'', exp:'', cvv:''};
+    return cardsHeaderHTML() + '<div class="vault"><div class="card-name">' + escapeHtml(PAY_METHOD_NAME[vault.edit]) + '</div>' +
+      '<div class="vault-label">Card number</div><input id="cardNum" class="vault-input" inputmode="numeric"' + off + ' value="' + cur.number + '">' +
+      '<div class="vault-label">Expiry (MM/YY)</div><input id="cardExp" class="vault-input" inputmode="numeric"' + off + ' value="' + cur.exp + '">' +
+      '<div class="vault-label">CVV</div><input id="cardCvv" class="vault-input" inputmode="numeric"' + off + ' value="' + cur.cvv + '">' +
+      err +
+      '<button class="vault-btn" onclick="cardSave()">Save</button>' +
+      (vault.cards[vault.edit] ? '<button class="vault-btn danger" onclick="cardClear()">Remove these details</button>' : '') +
+      '<button class="vault-btn ghost" onclick="cardEdit(null)">Cancel</button></div>';
+  }
+  if(vault.key){
+    return cardsHeaderHTML() + '<div class="vault">' + CARD_SLOTS.map(function(id){
+      var c = vault.cards[id];
+      return '<div class="card-box"><div class="card-head"><span class="card-name">' + escapeHtml(PAY_METHOD_NAME[id]) + '</span>' +
+        (c ? '<button class="card-edit" onclick="cardEdit(\'' + id + '\')">Edit</button>' : '') + '</div>' +
+        (c ? '<div class="card-copy">' +
+          '<button onclick="cardCopy(\'' + id + '\',\'number\')"><small>NUMBER</small><span>•••• ' + c.number.slice(-4) + '</span></button>' +
+          '<button onclick="cardCopy(\'' + id + '\',\'exp\')"><small>EXPIRY</small><span>' + c.exp + '</span></button>' +
+          '<button onclick="cardCopy(\'' + id + '\',\'cvv\')"><small>CVV</small><span>•••</span></button></div>'
+        : '<button class="card-empty" onclick="cardEdit(\'' + id + '\')">Add details</button>') + '</div>';
+    }).join('') + '</div>';
+  }
+  if(vault.busy){
+    return cardsHeaderHTML() + '<div class="vault"><div class="vault-lock"><p>Working…</p></div></div>';
+  }
+  var doc = vaultStored();
+  if(!doc){
+    return cardsHeaderHTML() + '<div class="vault"><div class="vault-lock">' +
+      '<p>Set a passcode for your cards. It is never stored. If you forget it, the cards must be entered again.</p>' +
+      '<input id="vaultPass" class="vault-input" type="text" placeholder="Passcode (8 or more)"' + off + '>' +
+      err + '<button class="vault-btn" onclick="vaultCreate()">Set passcode</button></div></div>';
+  }
+  if(vault.forgot){
+    return cardsHeaderHTML() + '<div class="vault"><div class="vault-lock">' +
+      '<p>A forgotten passcode cannot be recovered. Erasing removes the card details from this phone. Your transactions and bills are not touched.</p>' +
+      '<button class="vault-btn danger" onclick="vaultErase()">Erase card details</button>' +
+      '<button class="vault-btn ghost" onclick="vaultForgot(false)">Cancel</button></div></div>';
+  }
+  return cardsHeaderHTML() + '<div class="vault"><div class="vault-lock">' +
+    '<input id="vaultPass" class="vault-input" type="password" placeholder="Passcode"' + off + '>' +
+    err + '<button class="vault-btn" onclick="vaultUnlock()">Unlock</button>' +
+    '<button class="vault-btn ghost" onclick="vaultForgot(true)">Forgot passcode</button></div></div>';
+}
+
 function tabbarHTML(){
   return '<div class="tabbar">' +
     '<button class="' + (state.tab==='add'||state.tab==='history'?'active':'') + '" onclick="switchTab(\'add\')">' + plusSvg + '<span>Add</span></button>' +
     '<button class="' + (state.tab==='bills'?'active':'') + '" onclick="switchTab(\'bills\')">' + billSvg + '<span>Bills</span></button>' +
     '<button class="' + (state.tab==='market'?'active':'') + '" onclick="switchTab(\'market\')">' + chartSvg + '<span>Market</span></button>' +
+    '<button class="' + (state.tab==='cards'?'active':'') + '" onclick="switchTab(\'cards\')">' + cardSvg + '<span>Cards</span></button>' +
   '</div>';
 }
 
@@ -1934,7 +2219,7 @@ function payBlockHTML(b, ym){
   var recsHTML = '';
   if(e.recs.length){
     recsHTML = '<div class="pay-recs">' + e.recs.map(function(r,i){
-      var pm = r.pm && PAY_METHODS_BY_ID[r.pm] ? PAY_METHODS_BY_ID[r.pm].label : '—';
+      var pm = r.pm && PAY_METHODS_BY_ID[r.pm] ? pmName(PAY_METHODS_BY_ID[r.pm]) : '—';
       var d = String(r.d).split('-');
       return '<div class="pay-rec"><span>' + Number(d[1]) + '/' + Number(d[2]) + '</span>'
         + '<span>' + escapeHtml(pm) + '</span>'
@@ -2017,6 +2302,7 @@ function infoSheetHTML(){
     ['Where it lives', "<code>localStorage</code> &mdash; a storage bucket tied to THIS Home Screen icon specifically. Not cache, not shared with a Safari tab, doesn't sync anywhere until you tap Export."],
     ['What else deletes it', "Settings &rarr; Safari &rarr; Clear History and Website Data &middot; Settings &rarr; Safari &rarr; Advanced &rarr; Website Data &rarr; remove this site."],
     ["What's safe", "Force-quitting the app, restarting your phone, low-storage warnings, normal iOS updates &mdash; none of these touch it."],
+    ['Cards', "Encrypted with your passcode, on this phone only. Not in Export, not on GitHub, and gone if the icon is removed: then enter them again."],
     ['Real backup', "None of the above is a guarantee for every edge case. <b>Export regularly and AirDrop it off the phone</b> &mdash; that's the actual insurance, not a courtesy."],
   ];
   return '<div class="sheet-backdrop" onclick="closeInfoSheet()">' +
@@ -2069,6 +2355,7 @@ function render(){
     '<div class="screen-container">' + (state.tab==='add' ? addScreenHTML() :
       state.tab==='bills' ? billsScreenHTML() :
       state.tab==='market' ? marketScreenHTML() :
+      state.tab==='cards' ? cardsScreenHTML() :
       state.tab==='raw' ? rawScreenHTML() : historyScreenHTML()) + '</div>' +
     tabbarHTML() +
     '<div id="toast" class="toast"></div>' +
