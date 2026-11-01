@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-01T09:06:16",
- "count": 26,
+ "generated": "2026-11-01T18:56:02",
+ "count": 25,
  "items": [
   {
    "month": "2026-09",
@@ -89,12 +89,6 @@
   {
    "month": "2026-10",
    "source": "Citi PremierMiles (card)",
-   "days": 0,
-   "status": "due now"
-  },
-  {
-   "month": "2026-10",
-   "source": "DBS Altitude Visa (card)",
    "days": 0,
    "status": "due now"
   },
@@ -265,7 +259,7 @@
    },
    {
     "source": "DBS Altitude Visa (card)",
-    "state": "missing",
+    "state": "filed",
     "days": 0
    },
    {
