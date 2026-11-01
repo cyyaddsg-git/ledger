@@ -1,76 +1,166 @@
 {
- "generated": "2026-10-31T11:05:06",
- "count": 11,
+ "generated": "2026-11-01T09:06:16",
+ "count": 26,
  "items": [
   {
    "month": "2026-09",
    "source": "AdoreSys payslip",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "CIMB MY (bank)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "CIMB SG (bank)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "Citi PremierMiles (card)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "DBS Altitude Visa (card)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "DBS Multiplier (bank)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "HLB Home-loan C/A (bank)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "HLB PaySave (bank)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "HLB Wise (card)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "Maybank Amex (card)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
   },
   {
    "month": "2026-09",
    "source": "TNG e-wallet  (one export covers a range)",
-   "days": 24,
+   "days": 25,
    "status": "overdue"
+  },
+  {
+   "month": "2026-10",
+   "source": "AdoreSys payslip",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "CIMB MY (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "CIMB SG (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "Citi PremierMiles (card)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "DBS Altitude Visa (card)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "DBS Multiplier (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "HLB Home-loan C/A (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "HLB PaySave (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "HLB Wise (card)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "MBB Savings (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "Maybank Amex (card)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "Maybank Broker cash (Premier 1 share trading)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "RHB Basic C/A (bank)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "TNG e-wallet  (one export covers a range)",
+   "days": 0,
+   "status": "due now"
+  },
+  {
+   "month": "2026-10",
+   "source": "UOB Mastercard (card)",
+   "days": 0,
+   "status": "due now"
   }
  ],
  "months": {
-  "2026-10": [
+  "2026-11": [
    {
     "source": "AdoreSys payslip",
     "state": "not_issued",
@@ -133,7 +223,7 @@
    },
    {
     "source": "PBB cards — Visa Signature + Quantum",
-    "state": "filed",
+    "state": "not_issued",
     "days": 0
    },
    {
@@ -152,51 +242,133 @@
     "days": 0
    }
   ],
+  "2026-10": [
+   {
+    "source": "AdoreSys payslip",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "CIMB MY (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "CIMB SG (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "Citi PremierMiles (card)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "DBS Altitude Visa (card)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "DBS Multiplier (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "HLB Home-loan C/A (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "HLB PaySave (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "HLB Wise (card)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "MBB Savings (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "Maybank Amex (card)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "Maybank Broker cash (Premier 1 share trading)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "PBB cards — Visa Signature + Quantum",
+    "state": "filed",
+    "days": 0
+   },
+   {
+    "source": "RHB Basic C/A (bank)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "TNG e-wallet  (one export covers a range)",
+    "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "UOB Mastercard (card)",
+    "state": "missing",
+    "days": 0
+   }
+  ],
   "2026-09": [
    {
     "source": "AdoreSys payslip",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "CIMB MY (bank)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "CIMB SG (bank)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "Citi PremierMiles (card)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "DBS Altitude Visa (card)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "DBS Multiplier (bank)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "HLB Home-loan C/A (bank)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "HLB PaySave (bank)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "HLB Wise (card)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "MBB Savings (bank)",
@@ -206,7 +378,7 @@
    {
     "source": "Maybank Amex (card)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "Maybank Broker cash (Premier 1 share trading)",
@@ -226,7 +398,7 @@
    {
     "source": "TNG e-wallet  (one export covers a range)",
     "state": "overdue",
-    "days": 24
+    "days": 25
    },
    {
     "source": "UOB Mastercard (card)",
