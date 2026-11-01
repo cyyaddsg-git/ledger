@@ -169,12 +169,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .save-btn:disabled{background:var(--surface-2);color:var(--text-faint);}
 .save-btn:active:not(:disabled){transform:scale(0.98);}
 
-/* Note and Save share one row under the two pick areas. The button has a fixed share of the
-   row because its text changes as the amount is typed ("Save without amount" -> "Save
-   Expense"), and a width that followed the text would make the note field jump. */
+/* Note, then Save under it, are the last two rows, just above the tab bar. Save sits behind
+   the iOS keyboard while the note is being typed, so the keyboard's Done key closes it. */
 .add-foot{display:flex;align-items:center;gap:8px;padding:2px 16px 4px;}
 .add-foot .note-input{flex:1 1 0;min-width:0;padding:5px 2px;}
-.add-save{padding:2px 16px 0;}
+.add-save{padding:2px 16px 6px;}
 .add-save .save-btn{display:block;width:100%;margin:0;height:44px;padding:0 6px;font-size:15px;}
 
 /* The Editing bar is the one extra row this screen can have. The keys give up the height
@@ -772,7 +771,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-11-01u';
+var BUILD = '2026-11-02a';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -1581,8 +1580,8 @@ function addScreenHTML(){
       '<span class="amount-symbol">' + CURRENCIES[state.currency] + '</span>' +
       '<span class="amount" id="amountVal">' + state.amount + '</span>' +
     '</div></div>' +
-    keypadHTML() +
-    '<div class="add-save"><button class="save-btn" id="saveBtn" onclick="saveTransaction()">Save ' + typeLabel + '</button></div>' +
+    // Keys are pressed several times per entry and the chips once each, so the keypad sits
+    // lowest, under the thumb (YY 2026-11-02: "keypad abit high to press").
     '<div class="spacer"></div>' +
     '<div class="pick pick-pay' + (state.payMethod ? ' done' : '') + '">' +
       payMethodRowHTML() +
@@ -1590,9 +1589,11 @@ function addScreenHTML(){
     '<div class="pick pick-cat' + (catPicked ? ' done' : '') + '">' +
       categoryRowHTML() +
     '</div>' +
+    keypadHTML() +
     '<div class="add-foot">' +
-      '<input class="note-input" placeholder="Note (optional)" value="' + escapeHtml(state.note) + '" oninput="state.note=this.value" />' +
+      '<input class="note-input" placeholder="Note (optional)" enterkeyhint="done" value="' + escapeHtml(state.note) + '" oninput="state.note=this.value" onkeydown="if(event.key===\'Enter\')this.blur()" />' +
     '</div>' +
+    '<div class="add-save"><button class="save-btn" id="saveBtn" onclick="saveTransaction()">Save ' + typeLabel + '</button></div>' +
   '</div>';
 }
 
