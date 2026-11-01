@@ -102,8 +102,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 
 /* YY 2026-11-01: "currently every button mix together, i confuse". Category and Payment are
    two separate questions, each wanting its own 1 answer, so each is a tinted panel with its
-   own label and its own "Pick 1" / "done" state. The state reads without looking at a single
-   chip, and the picked chip is solid gold while the rest of that panel steps back. */
+   own label, and the pick is named beside it, so the state reads without looking at a single
+   chip. The picked chip is solid gold while the rest of that panel steps back. */
 .pick{margin:5px 16px 0;padding:3px 6px 6px;border-radius:14px;border:1px solid transparent;}
 .pick-cat{background:var(--pick-cat);border-color:var(--pick-cat-line);}
 .pick-pay{background:var(--pick-pay);border-color:var(--pick-pay-line);}
@@ -112,7 +112,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .pick-cat .pick-l{color:var(--income);}
 .pick-pay .pick-l{color:var(--gold);}
 .pick-state{min-width:0;font-size:11px;font-weight:600;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pick-state.need{flex:0 0 auto;padding:0 7px;border-radius:999px;border:1px dashed var(--text-dim);color:var(--text-dim);}
 .pick-state.done{color:var(--text);}
 .pick-head .ta-btn{margin-left:auto;flex:0 0 auto;padding:1px 9px;font-size:10.5px;}
 
@@ -129,8 +128,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .cat-chip.selected{background:var(--gold);border-color:var(--gold);}
 .cat-chip.selected .cat-label{color:#14200F;font-weight:700;}
 
-/* Two rows of six, in PAY_METHOD_SEQ order, More in the last cell. Row one is the six cards,
-   row two the first banks; the bank name stays on top and the number or place sits under it
+/* Two rows of six: PM_QUICK, More in the last cell. The bank name stays on top and the number or place sits under it
    so a chip never has to shrink its text to fit. */
 .pm-row{display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(2,var(--pm-h));gap:4px;}
 .pm-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 1px;min-width:0;border-radius:10px;background:var(--surface);border:1.5px solid var(--border);font-size:11px;font-weight:600;line-height:1.15;color:var(--text-dim);transition:background .15s,border-color .15s,color .15s,opacity .15s;}
@@ -756,7 +754,7 @@ PAY_METHOD_GROUPS.forEach(function(g){
 var PAY_METHOD_NAME = {
   dbs_alt:'DBS 2409', citi_pm:'Citi 2864', mbb_amex:'MBB 4079',
   pbb_visa:'PBB 8101', uob_mc:'UOB 3988', hlb_wise:'HLB 4409',
-  rhb_ca:'RHB Henge'
+  rhb_ca:'RHB Henge', grabpay:'Grab'
 };
 function pmName(p){ return (p && (PAY_METHOD_NAME[p.id] || p.label)) || ''; }
 // The currency each pay method spends in. Picking one sets the entry's currency to it,
@@ -786,7 +784,7 @@ var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline 
 //      Screen web app has no address bar and no reload, and GitHub Pages serves
 //      the HTML with max-age=600, so without this the phone can sit on a stale
 //      copy indefinitely and a fix that IS live never arrives.
-var BUILD = '2026-11-01s';
+var BUILD = '2026-11-01t';
 
 // ---- "What I still owe you": the statements the intake is waiting on.
 // YY 2026-09-05: "add a button at the category that pops up the raw material that still
@@ -1493,12 +1491,14 @@ function categoryRowHTML(){
   }).join('') + '</div>';
 }
 
-// Inline row = two rows of six: the first 11 methods in PAY_METHOD_SEQ, then "More".
+// Inline row = two rows of six: YY's quick buttons, then "More", which holds every method
+// in PAY_METHOD_SEQ order. YY 2026-11-01: MBB Amex and MBB Sav stay in More only.
+var PM_QUICK = ['dbs_alt','citi_pm','pbb_visa','uob_mc','hlb_wise','tng',
+                'dbs_sg','cimb_sg','cimb_my','hlb_pay','grabpay'];
 // It replaced the three most-recently-used chips, so a chip never moves between visits and
 // the sequence matches the More sheet. A selection from further down the sequence takes the
 // last slot: it stays on screen, in order, and can still be cleared by tapping it. A method
 // that no longer exists (an old entry's 'E-wallet') is shown by its stored label the same way.
-var PM_INLINE = 11;
 function payChipHTML(p, sel, target){
   var parts = pmName(p).split(' ');
   return '<button class="pm-chip' + (sel ? ' selected' : '') + '" aria-label="' + escapeHtml(pmName(p)) +
@@ -1512,8 +1512,8 @@ function payMethodRowHTML(target){
   var cur = target==='pay'
     ? (state.pay && state.pay.pm ? PAY_METHODS_BY_ID[state.pay.pm] : null)
     : state.payMethod;
-  var list = PAY_METHOD_SEQ.slice(0, PM_INLINE);
-  if(cur && !list.some(function(p){ return p.id === cur.id; })) list[PM_INLINE-1] = cur;
+  var list = PM_QUICK.map(function(id){ return PAY_METHODS_BY_ID[id]; });
+  if(cur && !list.some(function(p){ return p.id === cur.id; })) list[list.length-1] = cur;
   var chips = list.map(function(p){ return payChipHTML(p, cur && cur.id === p.id, target); }).join('');
   chips += '<button class="pm-chip more" onclick="openPmSheet(\'' + target + '\')"><span>&#8943;</span><span class="pm-tail">More</span></button>';
   return '<div class="pm-row">' + chips + '</div>';
@@ -1574,8 +1574,7 @@ function entrySegmentedHTML(){
 // The header of one pick area: its name, then whether it still needs its 1 pick.
 function pickHeadHTML(title, picked, extra){
   return '<div class="pick-head"><span class="pick-l">' + title + '</span>' +
-    (picked ? '<span class="pick-state done">&#10003; ' + escapeHtml(picked) + '</span>'
-            : '<span class="pick-state need">Pick 1</span>') +
+    (picked ? '<span class="pick-state done">&#10003; ' + escapeHtml(picked) + '</span>' : '') +
     (extra || '') + '</div>';
 }
 
@@ -1603,14 +1602,14 @@ function addScreenHTML(){
     keypadHTML() +
     '<div class="add-save"><button class="save-btn" id="saveBtn" onclick="saveTransaction()">Save ' + typeLabel + '</button></div>' +
     '<div class="spacer"></div>' +
+    '<div class="pick pick-pay' + (state.payMethod ? ' done' : '') + '">' +
+      pickHeadHTML('Payment', pmName(state.payMethod)) +
+      payMethodRowHTML() +
+    '</div>' +
     '<div class="pick pick-cat' + (catPicked ? ' done' : '') + '">' +
       pickHeadHTML('Category', catPicked ? catPicked.label : '',
         '<button class="ta-btn" onclick="openTaSheet()">= TA category</button>') +
       categoryRowHTML() +
-    '</div>' +
-    '<div class="pick pick-pay' + (state.payMethod ? ' done' : '') + '">' +
-      pickHeadHTML('Payment', pmName(state.payMethod)) +
-      payMethodRowHTML() +
     '</div>' +
     '<div class="add-foot">' +
       '<input class="note-input" placeholder="Note (optional)" value="' + escapeHtml(state.note) + '" oninput="state.note=this.value" />' +
