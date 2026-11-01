@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-01T19:39:10",
+ "generated": "2026-11-01T19:43:30",
  "count": 15,
  "items": [
   {
@@ -141,6 +141,11 @@
     "days": 0
    },
    {
+    "source": "HLB eFixed Deposit",
+    "state": "not_issued",
+    "days": 0
+   },
+   {
     "source": "MBB Savings (bank)",
     "state": "not_issued",
     "days": 0
@@ -220,6 +225,11 @@
    {
     "source": "HLB Wise (card)",
     "state": "missing",
+    "days": 0
+   },
+   {
+    "source": "HLB eFixed Deposit",
+    "state": "filed",
     "days": 0
    },
    {
