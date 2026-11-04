@@ -1,11 +1,11 @@
 {
- "generated": "2026-11-03T09:00:35",
+ "generated": "2026-11-04T09:00:33",
  "count": 5,
  "items": [
   {
    "month": "2026-09",
    "source": "AdoreSys payslip",
-   "days": 27,
+   "days": 28,
    "status": "overdue"
   },
   {
@@ -212,7 +212,7 @@
    {
     "source": "AdoreSys payslip",
     "state": "overdue",
-    "days": 27
+    "days": 28
    },
    {
     "source": "CIMB MY (bank)",
