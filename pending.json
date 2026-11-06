@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-06T09:27:30",
+ "generated": "2026-11-06T09:30:47",
  "count": 3,
  "items": [
   {
@@ -112,7 +112,7 @@
   "2026-10": [
    {
     "source": "AdoreSys payslip",
-    "state": "provided",
+    "state": "filed",
     "days": 0
    },
    {
@@ -199,7 +199,7 @@
   "2026-09": [
    {
     "source": "AdoreSys payslip",
-    "state": "provided",
+    "state": "filed",
     "days": 0
    },
    {
