@@ -1,9 +1,9 @@
 {
- "date": "2026-11-23",
- "ran_at": "2026-11-23T09:02:43+08:00",
+ "date": "2026-11-24",
+ "ran_at": "2026-11-24T09:01:01+08:00",
  "ok": false,
  "passed": 48,
  "total": 49,
  "gmail_ok": true,
- "fail_days": 8
+ "fail_days": 9
 }
