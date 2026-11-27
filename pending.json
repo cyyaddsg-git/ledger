@@ -1,17 +1,17 @@
 {
- "generated": "2026-11-26T09:04:45",
+ "generated": "2026-11-27T09:28:44",
  "count": 2,
  "items": [
   {
    "month": "2026-10",
    "source": "DBS Multiplier (bank)",
-   "days": 19,
+   "days": 20,
    "status": "overdue"
   },
   {
    "month": "2026-10",
    "source": "Maybank Broker cash (Premier 1 share trading)",
-   "days": 19,
+   "days": 20,
    "status": "overdue"
   }
  ],
@@ -132,7 +132,7 @@
    {
     "source": "DBS Multiplier (bank)",
     "state": "overdue",
-    "days": 19
+    "days": 20
    },
    {
     "source": "HLB Home-loan C/A (bank)",
@@ -167,7 +167,7 @@
    {
     "source": "Maybank Broker cash (Premier 1 share trading)",
     "state": "overdue",
-    "days": 19
+    "days": 20
    },
    {
     "source": "PBB cards — Visa Signature + Quantum",
